@@ -7,7 +7,6 @@
     <meta name="description" content="Aplicación interactiva de filosofía con juegos educativos">
     <meta name="theme-color" content="#2D1B69">
     
-    <!-- PWA -->
     <link rel="manifest" href="data:application/json,{%22name%22:%22PhilosoApp%22,%22short_name%22:%22PhilosoApp%22,%22start_url%22:%22./%22,%22display%22:%22standalone%22,%22background_color%22:%22%232D1B69%22,%22theme_color%22:%22%232D1B69%22,%22icons%22:[{%22src%22:%22data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%232D1B69'/%3E%3Ctext x='50' y='65' font-family='serif' font-size='40' fill='white' text-anchor='middle'%3E%CE%A6%3C/text%3E%3C/svg%3E%22,%22sizes%22:%22192x192%22,%22type%22:%22image/svg+xml%22}]}">
     
     <style>
@@ -333,6 +332,7 @@
         .timeline-container {
             position: relative;
             padding: 20px 0;
+            min-height: 500px; /* Asegura un espacio para arrastrar */
         }
 
         .timeline-item {
@@ -343,6 +343,8 @@
             cursor: grab;
             border: 2px dashed transparent;
             transition: all 0.3s ease;
+            list-style: none; /* Elimina viñetas de lista */
+            z-index: 10;
         }
 
         .timeline-item.dragging {
@@ -365,6 +367,8 @@
             justify-content: center;
             color: rgba(255,255,255,0.6);
             transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
         }
 
         .drop-zone.drag-over {
@@ -397,6 +401,10 @@
             text-align: left;
             font-size: 1em;
             transition: all 0.3s ease;
+        }
+
+        .dilemma-btn:hover {
+            background: rgba(255,255,255,0.2);
         }
 
         .timer-container {
@@ -513,10 +521,9 @@
     </style>
 </head>
 <body>
-    <div class="achievements" id="achievements"></div>
+    <div class="achievements" id="achievementsDisplay"></div>
     
     <div class="container">
-        <!-- Pantalla Principal -->
         <div id="mainScreen">
             <div class="header">
                 <h1>🧠 PhilosoApp</h1>
@@ -533,7 +540,7 @@
                     <div class="stat-label">Juegos</div>
                 </div>
                 <div class="stat">
-                    <div class="stat-number" id="achievements">0</div>
+                    <div class="stat-number" id="achievementsCount">0</div>
                     <div class="stat-label">Logros</div>
                 </div>
             </div>
@@ -551,10 +558,10 @@
                     <div class="game-description">Participa en diálogos filosóficos usando el método socrático de preguntas y respuestas</div>
                 </div>
 
-                <div class="game-card" onclick="startGame('maze')">
-                    <div class="game-icon">🌐</div>
-                    <div class="game-title">Laberinto del Pensamiento</div>
-                    <div class="game-description">Navega por conceptos filosóficos conectados para formar ideas coherentes</div>
+                <div class="game-card" onclick="startGame('timeline')">
+                    <div class="game-icon">📅</div>
+                    <div class="game-title">Timeline Filosófico</div>
+                    <div class="game-description">Ordena cronológicamente eventos, pensadores y corrientes filosóficas</div>
                 </div>
 
                 <div class="game-card" onclick="startGame('ethics')">
@@ -562,22 +569,9 @@
                     <div class="game-title">Dilemas Éticos</div>
                     <div class="game-description">Enfrenta situaciones morales complejas y explora diferentes perspectivas éticas</div>
                 </div>
-
-                <div class="game-card" onclick="startGame('timeline')">
-                    <div class="game-icon">📅</div>
-                    <div class="game-title">Timeline Filosófico</div>
-                    <div class="game-description">Ordena cronológicamente eventos, pensadores y corrientes filosóficas</div>
-                </div>
-
-                <div class="game-card" onclick="startGame('ai')">
-                    <div class="game-icon">🤖</div>
-                    <div class="game-title">Reflexión IA</div>
-                    <div class="game-description">Analiza críticamente el impacto filosófico de la inteligencia artificial</div>
-                </div>
             </div>
         </div>
 
-        <!-- Pantallas de Juegos -->
         <div id="quizScreen" class="game-screen">
             <button class="back-btn" onclick="backToMain()">← Volver al menú</button>
             <div class="progress-bar">
@@ -604,11 +598,14 @@
             </div>
         </div>
 
-        <div id="mazeScreen" class="game-screen">
+        <div id="timelineScreen" class="game-screen">
             <button class="back-btn" onclick="backToMain()">← Volver al menú</button>
             <div class="question-container">
-                <div class="question">Conecta los conceptos filosóficos para formar una cadena de pensamiento coherente</div>
-                <div id="mazeGame"></div>
+                <div class="question">Arrastra los elementos para ordenarlos cronológicamente</div>
+                <div id="timelineGame" class="timeline-container"></div>
+                <div style="text-align: center;">
+                    <button class="next-btn" id="timelineCheck" onclick="checkTimeline()">Verificar orden</button>
+                </div>
             </div>
         </div>
 
@@ -617,22 +614,6 @@
             <div class="dilemma-scenario" id="ethicsScenario"></div>
             <div class="dilemma-options" id="ethicsOptions"></div>
             <div class="feedback" id="ethicsFeedback"></div>
-        </div>
-
-        <div id="timelineScreen" class="game-screen">
-            <button class="back-btn" onclick="backToMain()">← Volver al menú</button>
-            <div class="question-container">
-                <div class="question">Arrastra los elementos para ordenarlos cronológicamente</div>
-                <div id="timelineGame"></div>
-                <button class="next-btn" id="timelineCheck" onclick="checkTimeline()">Verificar orden</button>
-            </div>
-        </div>
-
-        <div id="aiScreen" class="game-screen">
-            <button class="back-btn" onclick="backToMain()">← Volver al menú</button>
-            <div class="ai-scenario" id="aiScenario"></div>
-            <div class="choices" id="aiChoices"></div>
-            <div class="feedback" id="aiFeedback"></div>
         </div>
 
         <div class="loading" id="loadingScreen">
@@ -647,138 +628,68 @@
             totalScore: 0,
             gamesCompleted: 0,
             achievements: 0,
-            currentQuiz: 0,
-            currentDebate: 0,
-            currentEthics: 0,
-            currentTimeline: 0,
-            currentAI: 0
+            currentQuizIndex: 0,
+            currentDebateIndex: 0,
+            currentEthicsIndex: 0,
+            currentTimelineIndex: 0,
         };
 
-        // Base de datos de preguntas de filosofía
         const philosophyQuiz = [
             {
                 question: "¿Cuál es la etimología de la palabra 'filosofía'?",
-                answers: [
-                    "Amor a la sabiduría",
-                    "Estudio del conocimiento", 
-                    "Búsqueda de la verdad",
-                    "Reflexión profunda"
-                ],
+                answers: ["Amor a la sabiduría", "Estudio del conocimiento", "Búsqueda de la verdad", "Reflexión profunda"],
                 correct: 0,
                 explanation: "Filosofía proviene del griego 'philos' (amor) y 'sophia' (sabiduría), literalmente significa 'amor a la sabiduría'. Fue Pitágoras quien acuñó este término."
             },
             {
                 question: "Según Sócrates, ¿cuál es la base del conocimiento?",
-                answers: [
-                    "La experiencia sensorial",
-                    "Solo sé que no sé nada",
-                    "La revelación divina", 
-                    "La tradición cultural"
-                ],
+                answers: ["La experiencia sensorial", "Solo sé que no sé nada", "La revelación divina", "La tradición cultural"],
                 correct: 1,
                 explanation: "Sócrates defendía que la sabiduría comenzaba con el reconocimiento de la propia ignorancia. Su famosa frase 'solo sé que no sé nada' refleja esta humildad intelectual."
             },
             {
                 question: "¿Qué es la alegoría de la caverna de Platón?",
-                answers: [
-                    "Una crítica a la democracia",
-                    "Una metáfora sobre la educación y el conocimiento",
-                    "Una descripción del inframundo",
-                    "Una teoría sobre la política"
-                ],
+                answers: ["Una crítica a la democracia", "Una metáfora sobre la educación y el conocimiento", "Una descripción del inframundo", "Una teoría sobre la política"],
                 correct: 1,
                 explanation: "La alegoría de la caverna ilustra el proceso de adquisición del conocimiento y la diferencia entre el mundo sensible y el mundo de las ideas."
             },
             {
                 question: "Para Aristóteles, ¿cuál es el fin último del ser humano?",
-                answers: [
-                    "El placer",
-                    "La riqueza",
-                    "La felicidad (eudaimonia)",
-                    "El poder"
-                ],
+                answers: ["El placer", "La riqueza", "La felicidad (eudaimonia)", "El poder"],
                 correct: 2,
                 explanation: "Aristóteles sostiene que la felicidad (eudaimonia) es el bien supremo y el fin último al que tienden todas las acciones humanas."
             },
             {
                 question: "¿Qué caracteriza al ser humano según Cassirer?",
-                answers: [
-                    "Es un animal racional",
-                    "Es un animal simbólico",
-                    "Es un animal social",
-                    "Es un animal técnico"
-                ],
+                answers: ["Es un animal racional", "Es un animal simbólico", "Es un animal social", "Es un animal técnico"],
                 correct: 1,
                 explanation: "Ernst Cassirer define al ser humano como 'animal symbolicum', destacando nuestra capacidad única de crear y usar símbolos para dar sentido al mundo."
             }
         ];
-
-        // Diálogos socráticos - Múltiples niveles expandidos
+        
         const socraticDialogues = [
             {
                 topic: "¿Qué es la justicia?",
                 currentStep: 0,
                 steps: [
                     {
-                        dialogue: [
-                            { speaker: "socrates", text: "Dime, joven estudiante, ¿qué crees que es la justicia?" }
-                        ],
-                        choices: [
-                            "La justicia es dar a cada uno lo que se merece",
-                            "La justicia es seguir las leyes",
-                            "La justicia es tratar a todos por igual",
-                            "No estoy seguro"
-                        ],
+                        dialogue: [{ speaker: "socrates", text: "Dime, joven estudiante, ¿qué crees que es la justicia?" }],
+                        choices: ["La justicia es dar a cada uno lo que se merece", "¿Pero acaso todas las leyes son justas? ¿No has visto leyes injustas?", "La justicia es tratar a todos por igual", "No estoy seguro"],
                         responses: [
                             "Interesante. Pero dime, ¿quién decide lo que cada uno merece?",
-                            "¿Pero acaso todas las leyes son justas? ¿No has visto leyes injustas?",
-                            "¿Tratar igual al sabio y al ignorante, al virtuoso y al malvado? ¿Es eso realmente justo?",
+                            "Ciertamente, las leyes a veces son imperfectas. ¿Hay entonces una justicia por encima de la ley?",
+                            "Tratar igual al sabio y al ignorante, al virtuoso y al malvado... ¿es eso realmente justo?",
                             "La honestidad intelectual es admirable. Exploremos juntos este concepto."
                         ]
                     },
                     {
-                        dialogue: [],
-                        choices: [
-                            "Los más sabios de la sociedad",
-                            "Las leyes establecidas", 
-                            "Cada persona según su conciencia",
-                            "La tradición y costumbres"
-                        ],
+                        dialogue: [{ speaker: "socrates", text: "¿Y de dónde proviene esa justicia que mencionas?" }],
+                        choices: ["Los más sabios de la sociedad", "De las leyes establecidas", "Cada persona según su conciencia", "La tradición y costumbres"],
                         responses: [
-                            "¿Y cómo reconocemos a los verdaderamente sabios? ¿No podrían fingir sabiduría?",
-                            "¿Pero quién hace las leyes? ¿Son siempre justos quienes las crean?",
+                            "Pero, ¿cómo reconocemos a los verdaderamente sabios? ¿No podrían fingir sabiduría?",
+                            "Las leyes son hechas por humanos. ¿Son siempre justos quienes las crean?",
                             "Si cada conciencia decide, ¿no tendríamos infinitas definiciones de justicia?",
                             "¿Las tradiciones son siempre justas? ¿No han existido tradiciones terribles?"
-                        ]
-                    },
-                    {
-                        dialogue: [],
-                        choices: [
-                            "Mediante la educación y el diálogo",
-                            "Por sus acciones y resultados",
-                            "Es imposible saberlo con certeza",
-                            "A través de la experiencia"
-                        ],
-                        responses: [
-                            "¡Excelente! Entonces el diálogo, como el que tenemos ahora, nos acerca a la verdad.",
-                            "Pero, ¿no podrían buenas acciones venir de malas intenciones o mala suerte?",
-                            "Quizás la sabiduría esté en reconocer los límites de nuestro conocimiento.",
-                            "La experiencia es valiosa, pero ¿no puede también engañarnos?"
-                        ]
-                    },
-                    {
-                        dialogue: [],
-                        choices: [
-                            "Entonces la justicia perfecta es imposible",
-                            "Debemos seguir buscando la verdad",
-                            "La justicia es relativa a cada sociedad",
-                            "Solo los dioses conocen la verdadera justicia"
-                        ],
-                        responses: [
-                            "¿Es eso una excusa para no intentar ser justos? ¿O una invitación a la humildad?",
-                            "¡Ahí tienes el espíritu filosófico! La búsqueda es tan valiosa como el hallazgo.",
-                            "¿Pero entonces los esclavistas tenían razón en su sociedad? ¿No hay verdades universales?",
-                            "Una respuesta interesante. ¿Pero no es el humano quien debe decidir cómo actuar aquí y ahora?"
                         ]
                     }
                 ]
@@ -788,15 +699,8 @@
                 currentStep: 0,
                 steps: [
                     {
-                        dialogue: [
-                            { speaker: "socrates", text: "Hablemos de la belleza. ¿Qué hace que algo sea bello?" }
-                        ],
-                        choices: [
-                            "La belleza está en los ojos del espectador",
-                            "La belleza es armonía y proporción",
-                            "Lo bello es lo que nos causa placer",
-                            "La belleza es perfecta simetría"
-                        ],
+                        dialogue: [{ speaker: "socrates", text: "Hablemos de la belleza. ¿Qué hace que algo sea bello?" }],
+                        choices: ["La belleza está en los ojos del espectador", "La belleza es armonía y proporción", "Lo bello es lo que nos causa placer", "La belleza es perfecta simetría"],
                         responses: [
                             "Si la belleza es subjetiva, ¿por qué discutimos sobre arte? ¿No habría criterios compartidos?",
                             "Interesante. ¿Pero qué determina qué proporciones son armoniosas?",
@@ -805,836 +709,485 @@
                         ]
                     },
                     {
-                        dialogue: [],
-                        choices: [
-                            "Hay algunos criterios universales de belleza",
-                            "La cultura determina qué es bello",
-                            "La naturaleza nos enseña la belleza",
-                            "Es un misterio inexplicable"
-                        ],
+                        dialogue: [{ speaker: "socrates", text: "¿Y cómo podemos conocer esa belleza universal, si es que existe?" }],
+                        choices: ["Hay algunos criterios universales de belleza", "La cultura determina qué es bello", "La naturaleza nos enseña la belleza", "Es un misterio inexplicable"],
                         responses: [
                             "¿Cuáles serían esos criterios universales? ¿De dónde provienen?",
                             "¿Entonces no existe belleza objetiva? ¿Era bella la Afrodita antes de que la cultura griega la creara?",
                             "La naturaleza es cruel y violenta también. ¿Es bella una tormenta destructiva?",
                             "Los misterios nos invitan a seguir preguntando. ¿No crees?"
                         ]
-                    },
-                    {
-                        dialogue: [],
-                        choices: [
-                            "De la matemática y la geometría",
-                            "De la experiencia humana compartida",
-                            "De los dioses o lo divino",
-                            "No lo sé, pero intuyo que existen"
-                        ],
-                        responses: [
-                            "Fascinante. ¿Entonces la belleza sería descubierta, no creada? ¿Como las matemáticas?",
-                            "¿Pero qué experiencias compartimos realmente? ¿No somos todos únicos?",
-                            "Una respuesta que Platón aprobaría. ¿Pero cómo accedemos a esa belleza divina?",
-                            "La intuición puede ser sabiduría. ¿Qué te dice esa intuición sobre el arte?"
-                        ]
-                    }
-                ]
-            },
-            {
-                topic: "¿Qué es el conocimiento?",
-                currentStep: 0,
-                steps: [
-                    {
-                        dialogue: [
-                            { speaker: "socrates", text: "Ahora, amigo mío, exploremos algo fundamental: ¿qué es el conocimiento?" }
-                        ],
-                        choices: [
-                            "Conocimiento es información acumulada",
-                            "Es la capacidad de entender la realidad",
-                            "Es lo que aprendemos por experiencia",
-                            "Es reconocer que no sabemos nada"
-                        ],
-                        responses: [
-                            "¿Pero acumular datos te hace sabio? ¿Un libro es sabio por contener información?",
-                            "¿Y cómo sabemos que entendemos la realidad? ¿No podríamos estar equivocados?",
-                            "La experiencia enseña, cierto. ¿Pero no nos engañan a veces los sentidos?",
-                            "¡Ah! Reconoces la paradoja socrática. ¿Pero es eso conocimiento o ignorancia?"
-                        ]
-                    },
-                    {
-                        dialogue: [],
-                        choices: [
-                            "Entonces el conocimiento verdadero es imposible",
-                            "Debemos dudar de todo lo que creemos saber",
-                            "Hay diferentes tipos de conocimiento",
-                            "Solo podemos tener opiniones, no certezas"
-                        ],
-                        responses: [
-                            "¿O quizás debemos ser más humildes sobre lo que podemos conocer?",
-                            "Descartes estaría orgulloso. ¿Pero de qué no puedes dudar?",
-                            "Interesante distinción. ¿Qué tipos de conocimiento reconoces?",
-                            "¿Pero algunas opiniones no son mejores que otras? ¿Todas valen igual?"
-                        ]
                     }
                 ]
             }
         ];
 
-        // Dilemas éticos - Serie completa
-        const ethicalDilemmas = [
+        const ethicsDilemmas = [
             {
-                scenario: "Un tren sin frenos se dirige hacia cinco personas atadas a las vías. Puedes accionar una palanca para desviar el tren a otra vía, pero allí hay una persona. ¿Qué harías?",
+                scenario: "Imagina que eres el único testigo de un accidente de coche. El conductor es tu mejor amigo, y sabes que estaba ebrio. La otra persona está gravemente herida. Cuando llega la policía, te preguntan qué pasó. Tienes dos opciones:",
                 options: [
-                    "Acciono la palanca (salvo cinco vidas, pero causo una muerte)",
-                    "No hago nada (permito cinco muertes, pero no causo ninguna)",
-                    "Busco otra alternativa",
-                    "Me paralizo por la situación"
-                ],
-                analysis: {
-                    0: "Perspectiva utilitarista: Maximizas el bien común (mayor número de vidas salvadas). Sin embargo, esto implica usar a una persona como medio para un fin.",
-                    1: "Perspectiva deontológica: Respetas el principio de no matar directamente, aunque esto resulte en más muertes. Kant aprobaría esta posición.",
-                    2: "Perspectiva creativa: Buscas alternativas que respeten la dignidad de todos. Aunque admirable, en dilemas reales el tiempo es limitado.",
-                    3: "Reacción humana natural: El shock moral puede paralizar. Es importante reconocer nuestras limitaciones emocionales en decisiones éticas."
-                }
+                    {
+                        text: "Mientes para proteger a tu amigo, diciendo que no sabes si estaba ebrio.",
+                        result: "Esta decisión se alinea con una **ética de la lealtad**, priorizando la amistad. Sin embargo, desde una perspectiva **utilitarista**, tu mentira podría causar un mayor daño (un conductor ebrio no es castigado y podría herir a más personas). Desde una perspectiva **kantiana**, mentir es siempre inmoral, ya que no puede convertirse en una ley universal."
+                    },
+                    {
+                        text: "Dices la verdad sobre lo que viste, sabiendo que tu amigo tendrá graves problemas legales.",
+                        result: "Esta decisión se alinea con la **ética del deber** de Kant. Al decir la verdad, actúas basándote en un principio moral universal, sin importar las consecuencias personales. Esta acción también podría ser vista como **utilitarista** si el castigo de tu amigo evita que ponga en peligro a otros en el futuro."
+                    }
+                ]
             },
             {
-                scenario: "Eres médico y tienes un paciente que necesita urgentemente cinco órganos para vivir. En la sala de espera hay una persona sana cuya muerte salvaría al paciente. ¿La sacrificarías para salvar cinco vidas?",
+                scenario: "Un médico tiene a cinco pacientes que necesitan un trasplante de órganos para sobrevivir, pero no hay donantes. Llega un paciente sano que podría ser un donante compatible para los cinco. El médico tiene dos opciones:",
                 options: [
-                    "Sí, es matemáticamente correcto",
-                    "No, es asesinato",
-                    "Dependería de las circunstancias",
-                    "Buscaría otras opciones médicas"
-                ],
-                analysis: {
-                    0: "Utilitarismo puro: Priorizas el resultado cuantitativo. Pero esto ignora la diferencia moral entre matar y dejar morir.",
-                    1: "Ética deontológica: Reconoces deberes morales absolutos. La dignidad humana no puede violarse independientemente de las consecuencias.",
-                    2: "Ética situacional: Consideras que el contexto importa. Pero ¿qué circunstancias justificarían el asesinato?",
-                    3: "Búsqueda de alternativas: Rechazas el dilema como está planteado. Una respuesta pragmática y esperanzadora."
-                }
-            },
-            {
-                scenario: "Tu mejor amigo te confiesa que ha estado engañando en los exámenes y por eso tiene mejores notas que tú. El profesor pregunta si alguien sabe de casos de trampa. ¿Qué haces?",
-                options: [
-                    "Lo denuncio por justicia",
-                    "Guardo el secreto por lealtad",
-                    "Le doy un ultimátum: que se entregue o lo haré yo",
-                    "Hablo primero con él en privado"
-                ],
-                analysis: {
-                    0: "Prioridad de la justicia: Valoras la integridad académica por encima de la lealtad personal. Una perspectiva deontológica.",
-                    1: "Prioridad de la lealtad: Valoras las relaciones personales por encima de las reglas. Una ética del cuidado.",
-                    2: "Enfoque de responsabilidad: Buscas que él mismo asuma las consecuencias. Respetas su autonomía moral.",
-                    3: "Enfoque dialógico: Priorizas la comunicación y comprensión. Una aproximación socrática al problema."
-                }
-            },
-            {
-                scenario: "Trabajas en una empresa que contamina el ambiente pero da empleo a toda tu comunidad. Descubres evidencia de daño ambiental grave. ¿Qué haces?",
-                options: [
-                    "Denuncio públicamente sin importar las consecuencias",
-                    "Trato de cambiar las cosas desde adentro",
-                    "Renuncio y busco otro trabajo",
-                    "Mantengo el secreto para proteger los empleos"
-                ],
-                analysis: {
-                    0: "Ética de la responsabilidad global: Priorizas el bien común planetario. Una perspectiva universalista valiente.",
-                    1: "Reformismo pragmático: Buscas cambio gradual pero efectivo. Equilibras idealismo y realismo.",
-                    2: "Integridad personal: No participas en lo que consideras incorrecto. Una forma de protesta silenciosa.",
-                    3: "Utilitarismo local: Priorizas el bienestar inmediato de tu comunidad. Una perspectiva comunitarista."
-                }
+                    {
+                        text: "Sacrificar al paciente sano para salvar a los cinco. (Acción Utilitarista)",
+                        result: "El **utilitarismo** se enfoca en el mayor bien para el mayor número de personas. Desde este punto de vista, sacrificar a uno para salvar a cinco es la decisión correcta. Sin embargo, esta acción viola los derechos individuales del paciente sano, lo que es inaceptable para otras éticas como la **ética deontológica** de Kant, que se basa en el deber y el valor intrínseco de cada vida."
+                    },
+                    {
+                        text: "No hacer nada y dejar que los cinco pacientes mueran. (Acción Deontológica)",
+                        result: "La **ética deontológica** de Kant se centra en el deber. Un médico tiene el deber de no hacer daño, y sacrificar a un paciente para salvar a otros va en contra de ese deber. Aunque el resultado es la muerte de cinco personas, la acción misma es moralmente correcta, ya que no se violan los derechos de nadie. El fin no justifica los medios."
+                    }
+                ]
             }
         ];
 
-        // Cronología filosófica
-        const timelineEvents = [
-            { item: "Sócrates (470-399 a.C.)", order: 1, period: "Filosofía Antigua" },
-            { item: "Platón (428-348 a.C.)", order: 2, period: "Filosofía Antigua" },
-            { item: "Aristóteles (384-322 a.C.)", order: 3, period: "Filosofía Antigua" },
-            { item: "René Descartes (1596-1650)", order: 4, period: "Filosofía Moderna" },
-            { item: "Immanuel Kant (1724-1804)", order: 5, period: "Filosofía Moderna" },
-            { item: "Friedrich Nietzsche (1844-1900)", order: 6, period: "Filosofía Contemporánea" }
+        const timelineItems = [
+            { id: 'aristoteles', name: 'Aristóteles', year: -384 },
+            { id: 'socrates', name: 'Sócrates', year: -470 },
+            { id: 'platon', name: 'Platón', year: -427 },
+            { id: 'descartes', name: 'Descartes', year: 1596 },
+            { id: 'kant', name: 'Kant', year: 1724 },
+            { id: 'nietzsche', name: 'Nietzsche', year: 1844 }
         ];
 
-        // Escenarios de IA
-        const aiScenarios = [
-            {
-                scenario: "Una IA médica recomienda un tratamiento con 95% de efectividad basado en millones de datos, pero el médico humano tiene una 'corazonada' diferente basada en su experiencia. ¿En quién confiarías?",
-                choices: [
-                    "En la IA, los datos son objetivos",
-                    "En el médico, la intuición humana es valiosa",
-                    "Buscaría una segunda opinión",
-                    "Combinaría ambas perspectivas"
-                ],
-                analysis: {
-                    0: "Perspectiva positivista: Confías en la objetividad de los datos. Sin embargo, ¿pueden los algoritmos capturar la complejidad total de la experiencia humana?",
-                    1: "Perspectiva humanística: Valoras la intuición y experiencia humana. Pero ¿puede la subjetividad humana competir con el análisis de millones de casos?",
-                    2: "Perspectiva prudencial: Buscas más información antes de decidir. Una aproximación sensata que reconoce las limitaciones de ambas fuentes.",
-                    3: "Perspectiva integrativa: Reconoces el valor complementario de la IA y la experiencia humana. Una síntesis que puede ser óptima para decisiones complejas."
+        let draggableItem = null;
+        let dialogueHistory = [];
+        let debateTimerInterval = null;
+        let timerSeconds = 30;
+
+        // UI Elements
+        const mainScreen = document.getElementById('mainScreen');
+        const gameScreens = document.querySelectorAll('.game-screen');
+        const totalScoreEl = document.getElementById('totalScore');
+        const gamesCompletedEl = document.getElementById('gamesCompleted');
+        const achievementsCountEl = document.getElementById('achievementsCount');
+        const achievementsDisplay = document.getElementById('achievementsDisplay');
+
+        // Game-specific elements
+        const quizScreen = document.getElementById('quizScreen');
+        const quizQuestionEl = document.getElementById('quizQuestion');
+        const quizAnswersEl = document.getElementById('quizAnswers');
+        const quizFeedbackEl = document.getElementById('quizFeedback');
+        const quizNextBtn = document.getElementById('quizNext');
+        const quizProgressEl = document.getElementById('quizProgress');
+
+        const debateScreen = document.getElementById('debateScreen');
+        const dialogueContainer = document.getElementById('dialogueContainer');
+        const debateChoicesEl = document.getElementById('debateChoices');
+        const debateTimerEl = document.getElementById('debateTimer');
+
+        const timelineScreen = document.getElementById('timelineScreen');
+        const timelineGameEl = document.getElementById('timelineGame');
+        const timelineCheckBtn = document.getElementById('timelineCheck');
+
+        const ethicsScreen = document.getElementById('ethicsScreen');
+        const ethicsScenarioEl = document.getElementById('ethicsScenario');
+        const ethicsOptionsEl = document.getElementById('ethicsOptions');
+        const ethicsFeedbackEl = document.getElementById('ethicsFeedback');
+
+        // Functions
+        function showScreen(screenId) {
+            gameScreens.forEach(screen => {
+                if (screen.id === screenId) {
+                    screen.style.display = 'block';
+                } else {
+                    screen.style.display = 'none';
                 }
-            },
-            {
-                scenario: "Una IA de reclutamiento muestra sesgos sistemáticos contra ciertos grupos demográficos, pero es más eficiente que los reclutadores humanos. ¿Qué harías?",
-                choices: [
-                    "Descontinuar su uso inmediatamente",
-                    "Intentar corregir los sesgos",
-                    "Usarla solo como herramienta complementaria",
-                    "Aceptar que todos los sistemas tienen sesgos"
-                ],
-                analysis: {
-                    0: "Perspectiva ética deontológica: Prioriza la justicia sobre la eficiencia. Kant aprobaría tratar a las personas como fines en sí mismas.",
-                    1: "Perspectiva pragmática: Busca perfeccionar la tecnología. Pero ¿es posible eliminar completamente los sesgos de sistemas entrenados con datos humanos?",
-                    2: "Perspectiva moderada: Equilibra beneficios y riesgos. Mantiene supervisión humana mientras aprovecha las ventajas tecnológicas.",
-                    3: "Perspectiva relativista: Cuestiona si existe objetividad absoluta. ¿Son los sesgos de la IA peores que los sesgos humanos inconscientes?"
-                }
-            }
-        ];
-
-        // Conceptos del laberinto filosófico
-        const mazeConcepts = [
-            { id: 1, concept: "Ser", connections: [2, 3], explanation: "El concepto fundamental de la existencia" },
-            { id: 2, concept: "Devenir", connections: [1, 4], explanation: "El proceso de cambio y transformación" },
-            { id: 3, concept: "Esencia", connections: [1, 5], explanation: "La naturaleza fundamental de las cosas" },
-            { id: 4, concept: "Tiempo", connections: [2, 6], explanation: "La dimensión en la que ocurre el cambio" },
-            { id: 5, concept: "Existencia", connections: [3, 7], explanation: "El acto de ser en el mundo" },
-            { id: 6, concept: "Eternidad", connections: [4], explanation: "Lo que trasciende el tiempo" },
-            { id: 7, concept: "Libertad", connections: [5], explanation: "La capacidad de autodeterminación" }
-        ];
-
-        // Funciones principales
-        function loadGameState() {
-            const saved = localStorage.getItem('philosophyApp');
-            if (saved) {
-                gameState = { ...gameState, ...JSON.parse(saved) };
-                updateStats();
-            }
-        }
-
-        function saveGameState() {
-            localStorage.setItem('philosophyApp', JSON.stringify(gameState));
-        }
-
-        function updateStats() {
-            document.getElementById('totalScore').textContent = gameState.totalScore;
-            document.getElementById('gamesCompleted').textContent = gameState.gamesCompleted;
-            document.getElementById('achievements').textContent = gameState.achievements;
-        }
-
-        function showAchievement(text) {
-            const achievement = document.createElement('div');
-            achievement.className = 'achievement';
-            achievement.textContent = `🏆 ${text}`;
-            document.getElementById('achievements').appendChild(achievement);
-            
-            setTimeout(() => {
-                achievement.remove();
-            }, 3000);
-            
-            gameState.achievements++;
-            updateStats();
-            saveGameState();
-        }
-
-        function addScore(points) {
-            gameState.totalScore += points;
-            updateStats();
-            saveGameState();
-        }
-
-        function startGame(gameType) {
-            document.getElementById('mainScreen').style.display = 'none';
-            
-            switch(gameType) {
-                case 'quiz':
-                    startQuiz();
-                    break;
-                case 'debate':
-                    startDebate();
-                    break;
-                case 'maze':
-                    startMaze();
-                    break;
-                case 'ethics':
-                    startEthics();
-                    break;
-                case 'timeline':
-                    startTimeline();
-                    break;
-                case 'ai':
-                    startAI();
-                    break;
-            }
+            });
+            mainScreen.style.display = 'none';
         }
 
         function backToMain() {
-            document.querySelectorAll('.game-screen').forEach(screen => {
-                screen.style.display = 'none';
-            });
-            document.getElementById('mainScreen').style.display = 'block';
+            mainScreen.style.display = 'block';
+            gameScreens.forEach(screen => screen.style.display = 'none');
+            updateStats();
+            // Reset timers for debates
+            clearInterval(debateTimerInterval);
+            debateTimerEl.classList.remove('warning');
         }
 
-        // Juego Quiz
-        function startQuiz() {
-            document.getElementById('quizScreen').style.display = 'block';
-            gameState.currentQuiz = 0;
-            showQuestion();
+        function updateStats() {
+            totalScoreEl.textContent = gameState.totalScore;
+            gamesCompletedEl.textContent = gameState.gamesCompleted;
+            achievementsCountEl.textContent = gameState.achievements;
+            saveGameState();
         }
 
-        function showQuestion() {
-            const question = philosophyQuiz[gameState.currentQuiz];
-            document.getElementById('quizQuestion').textContent = question.question;
+        function saveGameState() {
+            localStorage.setItem('philosoappGameState', JSON.stringify(gameState));
+        }
+
+        function loadGameState() {
+            const savedState = localStorage.getItem('philosoappGameState');
+            if (savedState) {
+                gameState = JSON.parse(savedState);
+            }
+            updateStats();
+        }
+
+        function earnPoints(points) {
+            gameState.totalScore += points;
+            updateStats();
+        }
+
+        function awardAchievement(title, description) {
+            const achievementEl = document.createElement('div');
+            achievementEl.className = 'achievement';
+            achievementEl.textContent = `⭐ Logro: ${title}`;
+            achievementsDisplay.appendChild(achievementEl);
+            gameState.achievements++;
+            updateStats();
+            setTimeout(() => achievementEl.remove(), 5000);
+        }
+
+        function startGame(game) {
+            switch (game) {
+                case 'quiz':
+                    gameState.currentQuizIndex = 0;
+                    loadQuizQuestion();
+                    showScreen('quizScreen');
+                    break;
+                case 'debate':
+                    gameState.currentDebateIndex = 0;
+                    startSocraticDebate();
+                    showScreen('debateScreen');
+                    break;
+                case 'timeline':
+                    loadTimelineGame();
+                    showScreen('timelineScreen');
+                    break;
+                case 'ethics':
+                    gameState.currentEthicsIndex = 0;
+                    loadEthicsDilemma();
+                    showScreen('ethicsScreen');
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        // --- QUIZ GAME ---
+        function loadQuizQuestion() {
+            const currentQuiz = philosophyQuiz[gameState.currentQuizIndex];
+            if (!currentQuiz) {
+                endQuiz();
+                return;
+            }
+            quizQuestionEl.textContent = currentQuiz.question;
+            quizAnswersEl.innerHTML = '';
+            quizFeedbackEl.style.display = 'none';
+            quizNextBtn.style.display = 'none';
             
-            const answersContainer = document.getElementById('quizAnswers');
-            answersContainer.innerHTML = '';
-            
-            question.answers.forEach((answer, index) => {
+            currentQuiz.answers.forEach((answer, index) => {
                 const button = document.createElement('button');
                 button.className = 'answer-btn';
-                button.textContent = `${String.fromCharCode(65 + index)}. ${answer}`;
-                button.onclick = () => selectAnswer(index);
-                answersContainer.appendChild(button);
+                button.textContent = answer;
+                button.onclick = () => checkQuizAnswer(index);
+                quizAnswersEl.appendChild(button);
             });
-            
-            document.getElementById('quizFeedback').style.display = 'none';
-            document.getElementById('quizNext').classList.remove('show');
-            
-            const progress = ((gameState.currentQuiz + 1) / philosophyQuiz.length) * 100;
-            document.getElementById('quizProgress').style.width = progress + '%';
+            updateQuizProgress();
         }
 
-        function selectAnswer(selectedIndex) {
-            const question = philosophyQuiz[gameState.currentQuiz];
-            const buttons = document.querySelectorAll('.answer-btn');
-            const feedback = document.getElementById('quizFeedback');
-            
-            buttons.forEach((btn, index) => {
+        function checkQuizAnswer(selectedIndex) {
+            const currentQuiz = philosophyQuiz[gameState.currentQuizIndex];
+            const isCorrect = selectedIndex === currentQuiz.correct;
+            const allButtons = quizAnswersEl.querySelectorAll('.answer-btn');
+
+            allButtons.forEach((btn, index) => {
                 btn.disabled = true;
-                if (index === question.correct) {
+                if (index === currentQuiz.correct) {
                     btn.classList.add('correct');
-                } else if (index === selectedIndex && index !== question.correct) {
+                } else if (index === selectedIndex) {
                     btn.classList.add('incorrect');
                 }
             });
-            
-            feedback.textContent = question.explanation;
-            feedback.className = selectedIndex === question.correct ? 'feedback correct show' : 'feedback incorrect show';
-            
-            if (selectedIndex === question.correct) {
-                addScore(100);
-                if (gameState.currentQuiz === 0) {
-                    showAchievement('Primera respuesta correcta!');
-                }
+
+            if (isCorrect) {
+                quizFeedbackEl.textContent = `¡Correcto! ${currentQuiz.explanation}`;
+                quizFeedbackEl.className = 'feedback show correct';
+                earnPoints(10);
+            } else {
+                quizFeedbackEl.textContent = `Incorrecto. La respuesta correcta es: ${currentQuiz.answers[currentQuiz.correct]}. ${currentQuiz.explanation}`;
+                quizFeedbackEl.className = 'feedback show incorrect';
             }
-            
-            document.getElementById('quizNext').classList.add('show');
+            quizNextBtn.style.display = 'block';
         }
 
         function nextQuestion() {
-            gameState.currentQuiz++;
-            if (gameState.currentQuiz < philosophyQuiz.length) {
-                showQuestion();
-            } else {
-                completeQuiz();
+            gameState.currentQuizIndex++;
+            loadQuizQuestion();
+        }
+
+        function updateQuizProgress() {
+            const progress = ((gameState.currentQuizIndex) / philosophyQuiz.length) * 100;
+            quizProgressEl.style.width = `${progress}%`;
+        }
+
+        function endQuiz() {
+            gamesCompletedEl.textContent++;
+            const finalScore = gameState.totalScore;
+            quizQuestionEl.textContent = `¡Juego Terminado! Obtuviste ${finalScore} puntos.`;
+            quizAnswersEl.innerHTML = '';
+            quizFeedbackEl.style.display = 'none';
+            quizNextBtn.textContent = "Volver al menú";
+            quizNextBtn.onclick = backToMain;
+            quizNextBtn.style.display = 'block';
+            if (finalScore >= philosophyQuiz.length * 10) {
+                awardAchievement('Maestro del Quiz', 'Respondiste todas las preguntas correctamente.');
             }
         }
-
-        function completeQuiz() {
-            gameState.gamesCompleted++;
-            showAchievement('Quiz completado!');
-            backToMain();
-        }
-
-        // Variables para el sistema de tiempo
-        let debateTimer = null;
-        let debateTimeLeft = 30;
-        let debateCompleted = false;
-
-        // Juego Debate Socrático - Con sistema de tiempo
-        function startDebate() {
-            document.getElementById('debateScreen').style.display = 'block';
-            gameState.currentDebate = 0;
-            socraticDialogues[gameState.currentDebate].currentStep = 0;
-            debateCompleted = false;
-            showDialogue();
-        }
-
-        function showDialogue() {
-            const dialogue = socraticDialogues[gameState.currentDebate];
-            const currentStep = dialogue.steps[dialogue.currentStep];
-            const container = document.getElementById('dialogueContainer');
+        
+        // --- DEBATE SOCRÁTICO ---
+        function startSocraticDebate() {
+            gameState.currentDebateIndex = 0;
+            dialogueHistory = [];
+            document.getElementById('continueDebate').style.display = 'none';
+            document.getElementById('finishDebate').style.display = 'none';
             
-            // Si es el primer paso, mostrar diálogo inicial
-            if (dialogue.currentStep === 0) {
-                container.innerHTML = `<div style="text-align: center; margin-bottom: 20px;">
-                    <h3>📚 ${dialogue.topic}</h3>
-                    <p style="opacity: 0.8;">Explora este concepto a través del diálogo socrático</p>
-                </div>`;
-                currentStep.dialogue.forEach(message => {
-                    const div = document.createElement('div');
-                    div.className = `dialogue-message ${message.speaker}`;
-                    div.innerHTML = `<strong>${message.speaker === 'socrates' ? 'Sócrates' : 'Estudiante'}:</strong> ${message.text}`;
-                    container.appendChild(div);
-                });
-            }
-            
-            const choicesContainer = document.getElementById('debateChoices');
-            choicesContainer.innerHTML = '';
-            
-            currentStep.choices.forEach((choice, index) => {
-                const button = document.createElement('button');
-                button.className = 'choice-btn';
-                button.textContent = choice;
-                button.onclick = () => selectDebateChoice(index);
-                choicesContainer.appendChild(button);
+            const firstStep = socraticDialogues[0].steps[0];
+            firstStep.dialogue.forEach(msg => {
+                addMessage(msg.speaker, msg.text);
             });
-
-            // Ocultar botones de control
-            document.getElementById('continueDebate').classList.remove('show');
-            document.getElementById('finishDebate').classList.remove('show');
-            
-            // Iniciar timer para reflexión
+            loadDebateChoices(firstStep.choices);
             startDebateTimer();
         }
 
-        function startDebateTimer() {
-            debateTimeLeft = 30;
-            updateTimerDisplay();
-            
-            debateTimer = setInterval(() => {
-                debateTimeLeft--;
-                updateTimerDisplay();
-                
-                if (debateTimeLeft <= 0) {
-                    clearInterval(debateTimer);
-                    // No forzar selección, solo mostrar que el tiempo acabó
-                    document.getElementById('debateTimer').textContent = "⏰ Tiempo agotado - Pero puedes seguir reflexionando";
-                    document.getElementById('debateTimer').classList.remove('warning');
-                }
-            }, 1000);
+        function addMessage(speaker, text) {
+            const messageEl = document.createElement('div');
+            messageEl.className = `dialogue-message ${speaker}`;
+            messageEl.textContent = text;
+            dialogueContainer.appendChild(messageEl);
+            dialogueContainer.scrollTop = dialogueContainer.scrollHeight;
         }
 
-        function updateTimerDisplay() {
-            const timerElement = document.getElementById('debateTimer');
-            if (debateTimeLeft > 10) {
-                timerElement.textContent = `⏱️ Tiempo para reflexionar: ${debateTimeLeft}s`;
-                timerElement.classList.remove('warning');
-            } else if (debateTimeLeft > 0) {
-                timerElement.textContent = `⚠️ ¡Últimos ${debateTimeLeft} segundos!`;
-                timerElement.classList.add('warning');
-            }
-        }
-
-        function selectDebateChoice(choiceIndex) {
-            if (debateTimer) {
-                clearInterval(debateTimer);
-                debateTimer = null;
-            }
-            
-            const dialogue = socraticDialogues[gameState.currentDebate];
-            const currentStep = dialogue.steps[dialogue.currentStep];
-            const container = document.getElementById('dialogueContainer');
-            
-            // Deshabilitar botones
-            document.querySelectorAll('.choice-btn').forEach(btn => btn.disabled = true);
-            
-            // Añadir respuesta del estudiante
-            const studentResponse = document.createElement('div');
-            studentResponse.className = 'dialogue-message student';
-            studentResponse.innerHTML = `<strong>Estudiante:</strong> ${currentStep.choices[choiceIndex]}`;
-            container.appendChild(studentResponse);
-            
-            // Añadir respuesta de Sócrates después de un delay
-            setTimeout(() => {
-                const socratesResponse = document.createElement('div');
-                socratesResponse.className = 'dialogue-message socrates';
-                socratesResponse.innerHTML = `<strong>Sócrates:</strong> ${currentStep.responses[choiceIndex]}`;
-                container.appendChild(socratesResponse);
-                
-                // Scroll al final
-                container.scrollTop = container.scrollHeight;
-                
-                addScore(50);
-                
-                // Mostrar opciones de continuar
-                setTimeout(() => {
-                    document.getElementById('debateTimer').textContent = "🤔 ¿Qué quieres hacer ahora?";
-                    document.getElementById('debateTimer').classList.remove('warning');
-                    document.getElementById('continueDebate').classList.add('show');
-                    document.getElementById('finishDebate').classList.add('show');
-                }, 2000);
-            }, 1000);
-        }
-
-        function continueDebate() {
-            const dialogue = socraticDialogues[gameState.currentDebate];
-            
-            // Continuar al siguiente paso del diálogo actual
-            dialogue.currentStep++;
-            if (dialogue.currentStep < dialogue.steps.length) {
-                showDialogue();
-                return;
-            }
-            
-            // Si se acabó el diálogo actual, pasar al siguiente tema
-            gameState.currentDebate++;
-            if (gameState.currentDebate < socraticDialogues.length) {
-                socraticDialogues[gameState.currentDebate].currentStep = 0;
-                showDialogue();
-                return;
-            }
-            
-            // Si se acabaron todos los diálogos
-            finishDebate();
-        }
-
-        function finishDebate() {
-            if (debateTimer) {
-                clearInterval(debateTimer);
-                debateTimer = null;
-            }
-            
-            if (!debateCompleted) {
-                debateCompleted = true;
-                gameState.gamesCompleted++;
-                
-                // Calcular bonus por profundidad
-                const stepsCompleted = socraticDialogues.reduce((total, dialogue) => 
-                    total + dialogue.currentStep + 1, 0);
-                const bonus = stepsCompleted * 25;
-                addScore(bonus);
-                
-                showAchievement(`¡Diálogo socrático completado! +${bonus} puntos bonus`);
-            }
-            
-            setTimeout(() => {
-                backToMain();
-            }, 1500);
-        }
-
-        // Juego Laberinto del Pensamiento
-        function startMaze() {
-            document.getElementById('mazeScreen').style.display = 'block';
-            renderMaze();
-        }
-
-        function renderMaze() {
-            const container = document.getElementById('mazeGame');
-            container.innerHTML = '';
-            
-            mazeConcepts.forEach(concept => {
-                const div = document.createElement('div');
-                div.className = 'timeline-item';
-                div.style.cursor = 'pointer';
-                div.innerHTML = `
-                    <strong>${concept.concept}</strong><br>
-                    <small>${concept.explanation}</small>
-                `;
-                div.onclick = () => exploreConcept(concept);
-                container.appendChild(div);
-            });
-        }
-
-        function exploreConcept(concept) {
-            const connections = mazeConcepts.filter(c => concept.connections.includes(c.id));
-            alert(`${concept.concept}: ${concept.explanation}\n\nConceptos relacionados: ${connections.map(c => c.concept).join(', ')}`);
-            addScore(25);
-        }
-
-        // Juego Dilemas Éticos - Mejorado
-        function startEthics() {
-            document.getElementById('ethicsScreen').style.display = 'block';
-            gameState.currentEthics = 0;
-            showEthicalDilemma();
-        }
-
-        function showEthicalDilemma() {
-            const dilemma = ethicalDilemmas[gameState.currentEthics];
-            document.getElementById('ethicsScenario').innerHTML = `
-                <h3>Dilema ${gameState.currentEthics + 1} de ${ethicalDilemmas.length}</h3>
-                <p>${dilemma.scenario}</p>
-            `;
-            
-            const container = document.getElementById('ethicsOptions');
-            container.innerHTML = '';
-            
-            dilemma.options.forEach((option, index) => {
-                const button = document.createElement('button');
-                button.className = 'dilemma-btn';
-                button.textContent = option;
-                button.onclick = () => selectEthicalChoice(index);
-                container.appendChild(button);
-            });
-            
-            document.getElementById('ethicsFeedback').style.display = 'none';
-        }
-
-        function selectEthicalChoice(choiceIndex) {
-            const dilemma = ethicalDilemmas[gameState.currentEthics];
-            const feedback = document.getElementById('ethicsFeedback');
-            
-            // Deshabilitar botones
-            document.querySelectorAll('.dilemma-btn').forEach(btn => {
-                btn.disabled = true;
-                if (btn.textContent === dilemma.options[choiceIndex]) {
-                    btn.style.background = 'rgba(52, 152, 219, 0.3)';
-                    btn.style.borderColor = '#3498db';
-                }
-            });
-            
-            feedback.innerHTML = `
-                <h4>Análisis de tu elección:</h4>
-                <p>${dilemma.analysis[choiceIndex]}</p>
-            `;
-            feedback.className = 'feedback show';
-            feedback.style.background = 'rgba(52, 152, 219, 0.2)';
-            feedback.style.border = '1px solid #3498db';
-            
-            addScore(75);
-            
-            // Continuar al siguiente dilema o finalizar
-            setTimeout(() => {
-                gameState.currentEthics++;
-                if (gameState.currentEthics < ethicalDilemmas.length) {
-                    showEthicalDilemma();
-                } else {
-                    gameState.gamesCompleted++;
-                    showAchievement('¡Filósofo ético completado!');
-                    setTimeout(() => {
-                        backToMain();
-                    }, 2000);
-                }
-            }, 4000);
-        }
-
-        // Juego Timeline
-        function startTimeline() {
-            document.getElementById('timelineScreen').style.display = 'block';
-            renderTimeline();
-        }
-
-        function renderTimeline() {
-            const container = document.getElementById('timelineGame');
-            container.innerHTML = '';
-            
-            // Crear zonas de destino
-            for (let i = 0; i < timelineEvents.length; i++) {
-                const dropZone = document.createElement('div');
-                dropZone.className = 'drop-zone';
-                dropZone.textContent = `Posición ${i + 1}`;
-                dropZone.dataset.position = i;
-                container.appendChild(dropZone);
-            }
-            
-            // Crear elementos arrastrables (desordenados)
-            const shuffled = [...timelineEvents].sort(() => Math.random() - 0.5);
-            shuffled.forEach(event => {
-                const item = document.createElement('div');
-                item.className = 'timeline-item';
-                item.draggable = true;
-                item.textContent = event.item;
-                item.dataset.order = event.order;
-                
-                item.addEventListener('dragstart', e => {
-                    e.dataTransfer.setData('text/plain', event.order);
-                    item.classList.add('dragging');
-                });
-                
-                item.addEventListener('dragend', () => {
-                    item.classList.remove('dragging');
-                });
-                
-                container.appendChild(item);
-            });
-            
-            // Configurar zonas de destino
-            container.querySelectorAll('.drop-zone').forEach(zone => {
-                zone.addEventListener('dragover', e => {
-                    e.preventDefault();
-                    zone.classList.add('drag-over');
-                });
-                
-                zone.addEventListener('dragleave', () => {
-                    zone.classList.remove('drag-over');
-                });
-                
-                zone.addEventListener('drop', e => {
-                    e.preventDefault();
-                    const draggedOrder = e.dataTransfer.getData('text/plain');
-                    const draggedItem = container.querySelector(`[data-order="${draggedOrder}"]`);
-                    
-                    zone.appendChild(draggedItem);
-                    zone.classList.remove('drag-over');
-                });
-            });
-            
-            document.getElementById('timelineCheck').classList.add('show');
-        }
-
-        function checkTimeline() {
-            const zones = document.querySelectorAll('.drop-zone');
-            let correct = 0;
-            
-            zones.forEach((zone, index) => {
-                const item = zone.querySelector('.timeline-item');
-                if (item && parseInt(item.dataset.order) === index + 1) {
-                    correct++;
-                    zone.style.background = 'rgba(46, 204, 113, 0.3)';
-                } else {
-                    zone.style.background = 'rgba(231, 76, 60, 0.3)';
-                }
-            });
-            
-            const score = Math.round((correct / timelineEvents.length) * 100);
-            addScore(score);
-            
-            setTimeout(() => {
-                gameState.gamesCompleted++;
-                showAchievement(`Timeline: ${score}% correcto!`);
-                backToMain();
-            }, 2000);
-        }
-
-        // Juego IA - Mejorado
-        function startAI() {
-            document.getElementById('aiScreen').style.display = 'block';
-            gameState.currentAI = 0;
-            showAIScenario();
-        }
-
-        function showAIScenario() {
-            const scenario = aiScenarios[gameState.currentAI];
-            document.getElementById('aiScenario').innerHTML = `
-                <h3>Reflexión IA - Escenario ${gameState.currentAI + 1} de ${aiScenarios.length}</h3>
-                <p>${scenario.scenario}</p>
-            `;
-            
-            const container = document.getElementById('aiChoices');
-            container.innerHTML = '';
-            
-            scenario.choices.forEach((choice, index) => {
+        function loadDebateChoices(choices) {
+            debateChoicesEl.innerHTML = '';
+            choices.forEach((choice, index) => {
                 const button = document.createElement('button');
                 button.className = 'choice-btn';
                 button.textContent = choice;
-                button.onclick = () => selectAIChoice(index);
-                container.appendChild(button);
+                button.onclick = () => handleDebateChoice(index);
+                debateChoicesEl.appendChild(button);
             });
-            
-            document.getElementById('aiFeedback').style.display = 'none';
         }
 
-        function selectAIChoice(choiceIndex) {
-            const scenario = aiScenarios[gameState.currentAI];
-            const feedback = document.getElementById('aiFeedback');
+        function handleDebateChoice(choiceIndex) {
+            const currentDebate = socraticDialogues[0];
+            const currentStep = currentDebate.steps[currentDebate.currentStep];
+            const studentResponse = currentStep.choices[choiceIndex];
+            const socratesResponse = currentStep.responses[choiceIndex];
+
+            addMessage('student', studentResponse);
             
-            // Deshabilitar botones y marcar selección
-            document.querySelectorAll('.choice-btn').forEach(btn => {
-                btn.disabled = true;
-                if (btn.textContent === scenario.choices[choiceIndex]) {
-                    btn.style.background = 'rgba(155, 89, 182, 0.3)';
-                    btn.style.borderColor = '#9b59b6';
-                }
-            });
-            
-            feedback.innerHTML = `
-                <h4>Análisis filosófico:</h4>
-                <p>${scenario.analysis[choiceIndex]}</p>
-            `;
-            feedback.className = 'feedback show';
-            feedback.style.background = 'rgba(155, 89, 182, 0.2)';
-            feedback.style.border = '1px solid #9b59b6';
-            
-            addScore(60);
-            
-            // Continuar al siguiente escenario o finalizar
             setTimeout(() => {
-                gameState.currentAI++;
-                if (gameState.currentAI < aiScenarios.length) {
-                    showAIScenario();
+                addMessage('socrates', socratesResponse);
+                currentDebate.currentStep++;
+                if (currentDebate.currentStep < currentDebate.steps.length) {
+                    const nextChoices = currentDebate.steps[currentDebate.currentStep].choices;
+                    loadDebateChoices(nextChoices);
                 } else {
-                    gameState.gamesCompleted++;
-                    showAchievement('¡Reflexión sobre IA completada!');
-                    setTimeout(() => {
-                        backToMain();
-                    }, 2000);
+                    endDebate();
                 }
-            }, 4000);
-        }
-
-        // Registro de Service Worker para PWA
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('data:text/javascript,const CACHE_NAME="filosofia-app-v1";const urlsToCache=["/"];self.addEventListener("install",event=>{event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(urlsToCache)))});self.addEventListener("fetch",event=>{event.respondWith(caches.match(event.request).then(response=>response||fetch(event.request)))});')
-                .then(() => console.log('SW registrado'))
-                .catch(() => console.log('SW falló'));
-        }
-
-        // Inicialización
-        document.addEventListener('DOMContentLoaded', () => {
-            loadGameState();
+            }, 1000);
             
-            // Mostrar mensaje de bienvenida
-            if (gameState.totalScore === 0) {
-                setTimeout(() => {
-                    alert('¡Bienvenido a PhilosoApp! 🧠\n\nExplora la filosofía a través de juegos interactivos. Cada juego te ayudará a comprender mejor las ideas de los grandes pensadores.\n\n¡Comienza tu viaje filosófico!');
-                }, 1000);
+            debateChoicesEl.innerHTML = '';
+            clearInterval(debateTimerInterval);
+        }
+
+        function endDebate() {
+            dialogueContainer.innerHTML = '';
+            const finalMessage = document.createElement('div');
+            finalMessage.className = 'dialogue-message socrates';
+            finalMessage.innerHTML = `
+                <p>Nuestro diálogo ha terminado por ahora. Recuerda que en filosofía, las preguntas son a menudo más importantes que las respuestas.</p>
+            `;
+            dialogueContainer.appendChild(finalMessage);
+            
+            document.getElementById('continueDebate').style.display = 'none';
+            document.getElementById('finishDebate').style.display = 'inline-block';
+            gamesCompletedEl.textContent++;
+            earnPoints(20);
+            updateStats();
+        }
+
+        function startDebateTimer() {
+            timerSeconds = 30;
+            debateTimerEl.textContent = `Tiempo para reflexionar: ${timerSeconds}s`;
+            debateTimerEl.classList.remove('warning');
+            
+            debateTimerInterval = setInterval(() => {
+                timerSeconds--;
+                debateTimerEl.textContent = `Tiempo para reflexionar: ${timerSeconds}s`;
+                if (timerSeconds <= 10) {
+                    debateTimerEl.classList.add('warning');
+                }
+                if (timerSeconds <= 0) {
+                    clearInterval(debateTimerInterval);
+                    debateTimerEl.textContent = "¡Tiempo agotado!";
+                    endDebate();
+                }
+            }, 1000);
+        }
+
+        // --- ETHICS DILEMMAS ---
+        function loadEthicsDilemma() {
+            const dilemma = ethicsDilemmas[gameState.currentEthicsIndex];
+            if (!dilemma) {
+                endEthicsGame();
+                return;
             }
-            
-            // Efectos de animación suaves
-            const cards = document.querySelectorAll('.game-card');
-            cards.forEach((card, index) => {
-                card.style.animationDelay = `${index * 0.1}s`;
-                card.style.animation = 'fadeIn 0.5s ease forwards';
+            ethicsScenarioEl.textContent = dilemma.scenario;
+            ethicsOptionsEl.innerHTML = '';
+            ethicsFeedbackEl.style.display = 'none';
+
+            dilemma.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.className = 'dilemma-btn';
+                button.textContent = option.text;
+                button.onclick = () => showEthicsResult(index);
+                ethicsOptionsEl.appendChild(button);
             });
-        });
-
-        // Funciones de utilidad
-        function showLoading() {
-            document.getElementById('loadingScreen').style.display = 'block';
         }
 
-        function hideLoading() {
-            document.getElementById('loadingScreen').style.display = 'none';
-        }
+        function showEthicsResult(selectedIndex) {
+            const dilemma = ethicsDilemmas[gameState.currentEthicsIndex];
+            const result = dilemma.options[selectedIndex].result;
 
-        // Función para export de progreso (futura implementación)
-        function exportProgress() {
-            const data = {
-                ...gameState,
-                timestamp: new Date().toISOString(),
-                version: '1.0'
-            };
+            ethicsOptionsEl.querySelectorAll('.dilemma-btn').forEach(btn => btn.disabled = true);
             
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'filosofia-app-progreso.json';
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-
-        // Manejo de orientación para móviles
-        window.addEventListener('orientationchange', () => {
+            ethicsFeedbackEl.textContent = result;
+            ethicsFeedbackEl.className = 'feedback show';
+            
             setTimeout(() => {
-                window.scrollTo(0, 0);
-            }, 100);
-        });
+                gameState.currentEthicsIndex++;
+                if (gameState.currentEthicsIndex < ethicsDilemmas.length) {
+                    loadEthicsDilemma();
+                    earnPoints(15);
+                } else {
+                    endEthicsGame();
+                }
+            }, 8000);
+        }
 
-        // Prevenir zoom en iOS
-        document.addEventListener('touchstart', (e) => {
-            if (e.touches.length > 1) {
-                e.preventDefault();
-            }
-        }, { passive: false });
-
-        // Manejo de gestos
-        let touchStartY = 0;
-        document.addEventListener('touchstart', (e) => {
-            touchStartY = e.touches[0].clientY;
-        });
-
-        document.addEventListener('touchend', (e) => {
-            const touchEndY = e.changedTouches[0].clientY;
-            const diff = touchStartY - touchEndY;
+        function endEthicsGame() {
+            gamesCompletedEl.textContent++;
+            ethicsScenarioEl.textContent = "¡Juego de Dilemas Éticos Terminado! Has reflexionado sobre los grandes problemas morales. Vuelve al menú para explorar más.";
+            ethicsOptionsEl.innerHTML = '';
+            ethicsFeedbackEl.style.display = 'none';
             
-            // Gesture hacia arriba para actualizar
-            if (diff > 100 && window.scrollY === 0) {
-                location.reload();
+            const backBtn = document.createElement('button');
+            backBtn.className = 'back-btn';
+            backBtn.textContent = 'Volver al menú';
+            backBtn.onclick = backToMain;
+            ethicsScreen.appendChild(backBtn);
+
+            awardAchievement('Pensador Ético', 'Has completado los dilemas filosóficos.');
+            updateStats();
+        }
+
+        // --- TIMELINE GAME ---
+        function loadTimelineGame() {
+            const sortedItems = [...timelineItems].sort((a, b) => a.year - b.year);
+            const shuffledItems = [...timelineItems].sort(() => 0.5 - Math.random());
+
+            timelineGameEl.innerHTML = `
+                <ul id="dragList" class="timeline-container"></ul>
+                <ul id="dropZone" class="timeline-container">
+                    ${sortedItems.map(() => `<li class="drop-zone">Suelta un filósofo aquí</li>`).join('')}
+                </ul>
+            `;
+            
+            const dragList = document.getElementById('dragList');
+            const dropZoneList = document.getElementById('dropZone');
+
+            shuffledItems.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'timeline-item';
+                li.textContent = item.name;
+                li.draggable = true;
+                li.dataset.year = item.year;
+                dragList.appendChild(li);
+            });
+            
+            addDragAndDropListeners();
+        }
+
+        function addDragAndDropListeners() {
+            const items = document.querySelectorAll('.timeline-item');
+            const dropZones = document.querySelectorAll('.drop-zone');
+
+            items.forEach(item => {
+                item.addEventListener('dragstart', (e) => {
+                    draggableItem = item;
+                    setTimeout(() => item.classList.add('dragging'), 0);
+                    e.dataTransfer.setData('text/plain', item.textContent);
+                });
+                item.addEventListener('dragend', () => {
+                    draggableItem.classList.remove('dragging');
+                    draggableItem = null;
+                });
+            });
+
+            dropZones.forEach(zone => {
+                zone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    zone.classList.add('drag-over');
+                });
+                zone.addEventListener('dragleave', () => {
+                    zone.classList.remove('drag-over');
+                });
+                zone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    zone.classList.remove('drag-over');
+                    if (draggableItem && !zone.querySelector('.timeline-item')) {
+                        zone.innerHTML = '';
+                        zone.appendChild(draggableItem);
+                    }
+                });
+            });
+        }
+
+        function checkTimeline() {
+            const dropZones = document.querySelectorAll('.drop-zone');
+            const sortedItems = [...timelineItems].sort((a, b) => a.year - b.year);
+            let correct = true;
+            
+            dropZones.forEach((zone, index) => {
+                const droppedItem = zone.querySelector('.timeline-item');
+                if (!droppedItem || droppedItem.textContent !== sortedItems[index].name) {
+                    correct = false;
+                }
+            });
+
+            const feedbackDiv = document.createElement('div');
+            feedbackDiv.className = 'feedback show';
+            if (correct) {
+                feedbackDiv.textContent = '✅ ¡Correcto! Has ordenado la línea de tiempo perfectamente.';
+                feedbackDiv.classList.add('correct');
+                earnPoints(25);
+                gamesCompletedEl.textContent++;
+                awardAchievement('Maestro del Tiempo', 'Has ordenado la línea de tiempo filosófica.');
+                timelineCheckBtn.style.display = 'none';
+                
+            } else {
+                feedbackDiv.textContent = '❌ Incorrecto. Revisa el orden cronológico y vuelve a intentarlo.';
+                feedbackDiv.classList.add('incorrect');
             }
-        });
+            timelineGameEl.appendChild(feedbackDiv);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', loadGameState);
     </script>
 </body>
 </html>
