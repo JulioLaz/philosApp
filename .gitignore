@@ -1,0 +1,22 @@
+# Ignorar archivos temporales
+*.log
+*.tmp
+
+# Ignorar carpetas de sistema
+.DS_Store
+Thumbs.db
+
+# Ignorar dependencias (si usás npm)
+node_modules/
+
+# Ignorar archivos de compilación
+dist/
+build/
+
+# Ignorar configuraciones locales
+.env
+.vscode/
+
+*.css
+app.js
+index_00.html
