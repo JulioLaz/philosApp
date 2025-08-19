@@ -1,1193 +1,136 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PhilosoApp - Filosofía Interactiva</title>
-    <meta name="description" content="Aplicación interactiva de filosofía con juegos educativos">
-    <meta name="theme-color" content="#2D1B69">
-    
-    <link rel="manifest" href="data:application/json,{%22name%22:%22PhilosoApp%22,%22short_name%22:%22PhilosoApp%22,%22start_url%22:%22./%22,%22display%22:%22standalone%22,%22background_color%22:%22%232D1B69%22,%22theme_color%22:%22%232D1B69%22,%22icons%22:[{%22src%22:%22data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%232D1B69'/%3E%3Ctext x='50' y='65' font-family='serif' font-size='40' fill='white' text-anchor='middle'%3E%CE%A6%3C/text%3E%3C/svg%3E%22,%22sizes%22:%22192x192%22,%22type%22:%22image/svg+xml%22}]}">
-    
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #2D1B69 0%, #11998e 100%);
-            min-height: 100vh;
-            color: white;
-            overflow-x: hidden;
-        }
-
-        .container {
-            max-width: 100%;
-            margin: 0 auto;
-            padding: 10px;
-            min-height: 100vh;
-        }
-
-        .header {
-            text-align: center;
-            padding: 20px;
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-        }
-
-        .header h1 {
-            font-size: 2.5em;
-            font-weight: 700;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-            margin-bottom: 10px;
-        }
-
-        .header p {
-            font-size: 1.1em;
-            opacity: 0.9;
-        }
-
-        .stats {
-            display: flex;
-            justify-content: space-around;
-            background: rgba(255,255,255,0.1);
-            padding: 15px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            backdrop-filter: blur(10px);
-        }
-
-        .stat {
-            text-align: center;
-        }
-
-        .stat-number {
-            font-size: 1.8em;
-            font-weight: bold;
-            color: #FFD700;
-        }
-
-        .stat-label {
-            font-size: 0.9em;
-            opacity: 0.8;
-        }
-
-        .games-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-        .game-card {
-            background: rgba(255,255,255,0.15);
-            border-radius: 20px;
-            padding: 25px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .game-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
-        }
-
-        .game-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-            transition: 0.5s;
-        }
-
-        .game-card:hover::before {
-            left: 100%;
-        }
-
-        .game-icon {
-            font-size: 3em;
-            margin-bottom: 15px;
-            display: block;
-        }
-
-        .game-title {
-            font-size: 1.4em;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #FFD700;
-        }
-
-        .game-description {
-            font-size: 0.95em;
-            opacity: 0.9;
-            line-height: 1.4;
-        }
-
-        .game-screen {
-            display: none;
-            animation: fadeIn 0.5s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .back-btn {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 1em;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
-        }
-
-        .back-btn:hover {
-            background: rgba(255,255,255,0.3);
-            transform: translateX(-5px);
-        }
-
-        .question-container {
-            background: rgba(255,255,255,0.15);
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 20px;
-            backdrop-filter: blur(10px);
-        }
-
-        .question {
-            font-size: 1.3em;
-            font-weight: 500;
-            margin-bottom: 25px;
-            text-align: center;
-            line-height: 1.5;
-        }
-
-        .answers {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .answer-btn {
-            background: rgba(255,255,255,0.1);
-            color: white;
-            border: 2px solid rgba(255,255,255,0.3);
-            padding: 18px 20px;
-            border-radius: 15px;
-            cursor: pointer;
-            font-size: 1em;
-            text-align: left;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .answer-btn:hover {
-            background: rgba(255,255,255,0.2);
-            transform: translateX(5px);
-        }
-
-        .answer-btn.correct {
-            background: rgba(46, 204, 113, 0.3);
-            border-color: #2ecc71;
-        }
-
-        .answer-btn.incorrect {
-            background: rgba(231, 76, 60, 0.3);
-            border-color: #e74c3c;
-        }
-
-        .feedback {
-            margin-top: 20px;
-            padding: 20px;
-            border-radius: 15px;
-            display: none;
-        }
-
-        .feedback.show {
-            display: block;
-            animation: slideIn 0.5s ease;
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .feedback.correct {
-            background: rgba(46, 204, 113, 0.2);
-            border: 1px solid #2ecc71;
-        }
-
-        .feedback.incorrect {
-            background: rgba(231, 76, 60, 0.2);
-            border: 1px solid #e74c3c;
-        }
-
-        .next-btn {
-            background: linear-gradient(45deg, #FFD700, #FFA500);
-            color: #2D1B69;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 1.1em;
-            font-weight: bold;
-            margin-top: 20px;
-            transition: all 0.3s ease;
-            display: none;
-        }
-
-        .next-btn.show {
-            display: inline-block;
-        }
-
-        .next-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
-        }
-
-        .progress-bar {
-            background: rgba(255,255,255,0.2);
-            height: 8px;
-            border-radius: 4px;
-            overflow: hidden;
-            margin-bottom: 20px;
-        }
-
-        .progress-fill {
-            background: linear-gradient(45deg, #FFD700, #FFA500);
-            height: 100%;
-            transition: width 0.5s ease;
-        }
-
-        .dialogue-container {
-            max-height: 400px;
-            overflow-y: auto;
-            margin-bottom: 20px;
-        }
-
-        .dialogue-message {
-            margin: 15px 0;
-            padding: 15px;
-            border-radius: 15px;
-            animation: messageIn 0.5s ease;
-        }
-
-        @keyframes messageIn {
-            from { opacity: 0; transform: translateX(-20px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-
-        .socrates {
-            background: rgba(52, 152, 219, 0.3);
-            border-left: 4px solid #3498db;
-            margin-right: 20px;
-        }
-
-        .student {
-            background: rgba(155, 89, 182, 0.3);
-            border-right: 4px solid #9b59b6;
-            margin-left: 20px;
-            text-align: right;
-        }
-
-        .choices {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .choice-btn {
-            background: rgba(255,255,255,0.1);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.3);
-            padding: 15px;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .choice-btn:hover {
-            background: rgba(255,255,255,0.2);
-        }
-
-        .timeline-container {
-            position: relative;
-            padding: 20px 0;
-            min-height: 500px; /* Asegura un espacio para arrastrar */
-        }
-
-        .timeline-item {
-            background: rgba(255,255,255,0.1);
-            margin: 15px 0;
-            padding: 20px;
-            border-radius: 15px;
-            cursor: grab;
-            border: 2px dashed transparent;
-            transition: all 0.3s ease;
-            list-style: none; /* Elimina viñetas de lista */
-            z-index: 10;
-        }
-
-        .timeline-item.dragging {
-            opacity: 0.5;
-            transform: rotate(5deg);
-        }
-
-        .timeline-item.drag-over {
-            border-color: #FFD700;
-            background: rgba(255,215,0,0.2);
-        }
-
-        .drop-zone {
-            min-height: 80px;
-            border: 2px dashed rgba(255,255,255,0.3);
-            border-radius: 10px;
-            margin: 10px 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: rgba(255,255,255,0.6);
-            transition: all 0.3s ease;
-            position: relative;
-            z-index: 1;
-        }
-
-        .drop-zone.drag-over {
-            border-color: #FFD700;
-            background: rgba(255,215,0,0.1);
-            color: #FFD700;
-        }
-
-        .dilemma-scenario {
-            background: rgba(255,255,255,0.1);
-            padding: 25px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            line-height: 1.6;
-        }
-
-        .dilemma-options {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .dilemma-btn {
-            background: rgba(255,255,255,0.1);
-            color: white;
-            border: 2px solid rgba(255,255,255,0.3);
-            padding: 20px;
-            border-radius: 15px;
-            cursor: pointer;
-            text-align: left;
-            font-size: 1em;
-            transition: all 0.3s ease;
-        }
-
-        .dilemma-btn:hover {
-            background: rgba(255,255,255,0.2);
-        }
-
-        .timer-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 20px;
-            background: rgba(255,255,255,0.1);
-            padding: 15px;
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
-        }
-
-        .timer {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #FFD700;
-            text-align: center;
-        }
-
-        .timer.warning {
-            color: #e74c3c;
-            animation: pulse 1s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-
-        .continue-btn {
-            background: linear-gradient(45deg, #2ecc71, #27ae60);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 1.1em;
-            font-weight: bold;
-            margin: 10px 5px;
-            transition: all 0.3s ease;
-            display: none;
-        }
-
-        .continue-btn.show {
-            display: inline-block;
-        }
-
-        .continue-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4);
-        }
-
-        .ai-scenario {
-            background: linear-gradient(45deg, rgba(0,0,0,0.3), rgba(255,255,255,0.1));
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 20px;
-        }
-
-        .achievements {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-        }
-
-        .achievement {
-            background: linear-gradient(45deg, #FFD700, #FFA500);
-            color: #2D1B69;
-            padding: 10px 15px;
-            border-radius: 25px;
-            margin-bottom: 10px;
-            animation: achievementPop 0.5s ease;
-            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
-        }
-
-        @keyframes achievementPop {
-            0% { transform: scale(0) rotate(180deg); opacity: 0; }
-            50% { transform: scale(1.2) rotate(0deg); opacity: 1; }
-            100% { transform: scale(1) rotate(0deg); opacity: 1; }
-        }
-
-        @media (max-width: 768px) {
-            .container { padding: 5px; }
-            .header h1 { font-size: 2em; }
-            .games-grid { grid-template-columns: 1fr; }
-            .question { font-size: 1.1em; }
-            .stats { flex-direction: column; gap: 10px; }
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 40px;
-        }
-
-        .spinner {
-            border: 4px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top: 4px solid #FFD700;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
+  <meta charset="utf-8" />
+  <title>PhilosoApp · Filosofía Interactiva</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#2D1B69" />
+  <meta name="description" content="Aplicación interactiva de filosofía para secundaria: lecturas, debates, dilemas éticos, historias y quiz." />
+
+  <!-- Styles -->
+  <link rel="preload" as="style" href="styles.css" />
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Favicons básicos -->
+  <link rel="icon" href="data:image/svg+xml,\
+  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>\
+    <circle cx='50' cy='50' r='45' fill='%232D1B69'/>\
+    <text x='50' y='65' font-family='serif' font-size='40' fill='white' text-anchor='middle'>Φ</text>\
+  </svg>" />
 </head>
 <body>
-    <div class="achievements" id="achievementsDisplay"></div>
-    
-    <div class="container">
-        <div id="mainScreen">
-            <div class="header">
-                <h1>🧠 PhilosoApp</h1>
-                <p>Descubre la filosofía de manera interactiva y divertida</p>
-            </div>
+  <!-- Logros flotantes -->
+  <div class="achievements-tray" id="achievementsTray" aria-live="polite"></div>
 
-            <div class="stats">
-                <div class="stat">
-                    <div class="stat-number" id="totalScore">0</div>
-                    <div class="stat-label">Puntos</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-number" id="gamesCompleted">0</div>
-                    <div class="stat-label">Juegos</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-number" id="achievementsCount">0</div>
-                    <div class="stat-label">Logros</div>
-                </div>
-            </div>
+  <main class="container" role="main">
+    <!-- Encabezado -->
+    <header class="header">
+      <h1>🧠 PhilosoApp</h1>
+      <p>Explorá filosofía con lecturas, debates, dilemas y más — a tu ritmo.</p>
+    </header>
 
-            <div class="games-grid">
-                <div class="game-card" onclick="startGame('quiz')">
-                    <div class="game-icon">🧠</div>
-                    <div class="game-title">Filosofo Quiz</div>
-                    <div class="game-description">Pon a prueba tus conocimientos sobre los grandes pensadores y sus ideas fundamentales</div>
-                </div>
+    <!-- Barra de control global -->
+    <section class="toolbar" aria-label="Controles de unidad y progreso">
+      <div class="select-group">
+        <label for="unitSelect">Unidad temática:</label>
+        <select id="unitSelect">
+          <option value="I">UNIDAD I · ¿Qué es filosofía?</option>
+          <option value="II">UNIDAD II · Antropología filosófica</option>
+          <option value="III">UNIDAD III · Ética</option>
+        </select>
+      </div>
 
-                <div class="game-card" onclick="startGame('debate')">
-                    <div class="game-icon">💬</div>
-                    <div class="game-title">Debate Socrático</div>
-                    <div class="game-description">Participa en diálogos filosóficos usando el método socrático de preguntas y respuestas</div>
-                </div>
-
-                <div class="game-card" onclick="startGame('timeline')">
-                    <div class="game-icon">📅</div>
-                    <div class="game-title">Timeline Filosófico</div>
-                    <div class="game-description">Ordena cronológicamente eventos, pensadores y corrientes filosóficas</div>
-                </div>
-
-                <div class="game-card" onclick="startGame('ethics')">
-                    <div class="game-icon">⚖️</div>
-                    <div class="game-title">Dilemas Éticos</div>
-                    <div class="game-description">Enfrenta situaciones morales complejas y explora diferentes perspectivas éticas</div>
-                </div>
-            </div>
+      <div class="stats" aria-label="Estadísticas">
+        <div class="stat">
+          <div class="stat-number" id="totalScore">0</div>
+          <div class="stat-label">Puntos</div>
         </div>
-
-        <div id="quizScreen" class="game-screen">
-            <button class="back-btn" onclick="backToMain()">← Volver al menú</button>
-            <div class="progress-bar">
-                <div class="progress-fill" id="quizProgress" style="width: 0%"></div>
-            </div>
-            <div class="question-container">
-                <div class="question" id="quizQuestion"></div>
-                <div class="answers" id="quizAnswers"></div>
-                <div class="feedback" id="quizFeedback"></div>
-                <button class="next-btn" id="quizNext" onclick="nextQuestion()">Siguiente pregunta</button>
-            </div>
+        <div class="stat">
+          <div class="stat-number" id="gamesCompleted">0</div>
+          <div class="stat-label">Actividades</div>
         </div>
-
-        <div id="debateScreen" class="game-screen">
-            <button class="back-btn" onclick="backToMain()">← Volver al menú</button>
-            <div class="timer-container">
-                <div class="timer" id="debateTimer">Tiempo para reflexionar: 30s</div>
-            </div>
-            <div class="dialogue-container" id="dialogueContainer"></div>
-            <div class="choices" id="debateChoices"></div>
-            <div style="text-align: center;">
-                <button class="continue-btn" id="continueDebate" onclick="continueDebate()">Continuar diálogo</button>
-                <button class="continue-btn" id="finishDebate" onclick="finishDebate()" style="background: linear-gradient(45deg, #e74c3c, #c0392b);">Finalizar sesión</button>
-            </div>
+        <div class="stat">
+          <div class="stat-number" id="achievementsCount">0</div>
+          <div class="stat-label">Logros</div>
         </div>
+      </div>
+    </section>
 
-        <div id="timelineScreen" class="game-screen">
-            <button class="back-btn" onclick="backToMain()">← Volver al menú</button>
-            <div class="question-container">
-                <div class="question">Arrastra los elementos para ordenarlos cronológicamente</div>
-                <div id="timelineGame" class="timeline-container"></div>
-                <div style="text-align: center;">
-                    <button class="next-btn" id="timelineCheck" onclick="checkTimeline()">Verificar orden</button>
-                </div>
-            </div>
+    <!-- Menú principal -->
+    <section id="mainScreen" class="screen active" aria-label="Menú principal">
+      <div class="games-grid">
+        <button class="game-card" data-game="reading">
+          <div class="game-icon">📖</div>
+          <div class="game-title">Lectura & Reflexión</div>
+          <p class="game-description">Leé un texto breve, marcá ideas clave y planteá una pregunta.</p>
+        </button>
+
+        <button class="game-card" data-game="socratic">
+          <div class="game-icon">💬</div>
+          <div class="game-title">Debate Socrático</div>
+          <p class="game-description">Hipótesis → preguntas → objeción → revisión de postura.</p>
+        </button>
+
+        <button class="game-card" data-game="dilemmas">
+          <div class="game-icon">⚖️</div>
+          <div class="game-title">Dilemas Éticos</div>
+          <p class="game-description">Decidí, leé marcos teóricos y justificá de nuevo.</p>
+        </button>
+
+        <button class="game-card" data-game="stories">
+          <div class="game-icon">🧭</div>
+          <div class="game-title">Historias Ramificadas</div>
+          <p class="game-description">Elegí rutas y mirá consecuencias filosóficas.</p>
+        </button>
+
+        <button class="game-card" data-game="cards">
+          <div class="game-icon">🗂️</div>
+          <div class="game-title">Cartas de Conceptos</div>
+          <p class="game-description">Volteá, explicá con tus palabras y compará.</p>
+        </button>
+
+        <button class="game-card" data-game="quiz">
+          <div class="game-icon">🧠</div>
+          <div class="game-title">Quiz con Pistas</div>
+          <p class="game-description">Leé una pista antes de responder. ¡Tiempo corriendo!</p>
+        </button>
+      </div>
+
+      <div class="export-import">
+        <button id="exportBtn" class="btn">Exportar portafolio</button>
+        <label class="file-label">
+          Importar portafolio
+          <input id="importInput" type="file" accept="application/json" />
+        </label>
+      </div>
+    </section>
+
+    <!-- Plantilla de pantalla/módulo -->
+    <section id="moduleScreen" class="screen" aria-live="polite">
+      <button class="back-btn" id="backBtn" aria-label="Volver al menú">← Volver</button>
+
+      <div class="module-header">
+        <div class="module-meta">
+          <h2 id="moduleTitle">Título del módulo</h2>
+          <p id="moduleObjective" class="objective">Objetivo del módulo…</p>
         </div>
+        <div class="timer" id="moduleTimer" aria-live="polite">00:00</div>
+      </div>
 
-        <div id="ethicsScreen" class="game-screen">
-            <button class="back-btn" onclick="backToMain()">← Volver al menú</button>
-            <div class="dilemma-scenario" id="ethicsScenario"></div>
-            <div class="dilemma-options" id="ethicsOptions"></div>
-            <div class="feedback" id="ethicsFeedback"></div>
-        </div>
+      <div class="module-body" id="moduleBody">
+        <!-- Contenido dinámico del módulo -->
+      </div>
 
-        <div class="loading" id="loadingScreen">
-            <div class="spinner"></div>
-            <p>Cargando experiencia filosófica...</p>
-        </div>
-    </div>
+      <div class="module-footer" id="moduleFooter">
+        <!-- Controles/acciones dinámicos -->
+      </div>
+    </section>
 
-    <script>
-        // Estado global de la aplicación
-        let gameState = {
-            totalScore: 0,
-            gamesCompleted: 0,
-            achievements: 0,
-            currentQuizIndex: 0,
-            currentDebateIndex: 0,
-            currentEthicsIndex: 0,
-            currentTimelineIndex: 0,
-        };
+    <!-- Toast -->
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </main>
 
-        const philosophyQuiz = [
-            {
-                question: "¿Cuál es la etimología de la palabra 'filosofía'?",
-                answers: ["Amor a la sabiduría", "Estudio del conocimiento", "Búsqueda de la verdad", "Reflexión profunda"],
-                correct: 0,
-                explanation: "Filosofía proviene del griego 'philos' (amor) y 'sophia' (sabiduría), literalmente significa 'amor a la sabiduría'. Fue Pitágoras quien acuñó este término."
-            },
-            {
-                question: "Según Sócrates, ¿cuál es la base del conocimiento?",
-                answers: ["La experiencia sensorial", "Solo sé que no sé nada", "La revelación divina", "La tradición cultural"],
-                correct: 1,
-                explanation: "Sócrates defendía que la sabiduría comenzaba con el reconocimiento de la propia ignorancia. Su famosa frase 'solo sé que no sé nada' refleja esta humildad intelectual."
-            },
-            {
-                question: "¿Qué es la alegoría de la caverna de Platón?",
-                answers: ["Una crítica a la democracia", "Una metáfora sobre la educación y el conocimiento", "Una descripción del inframundo", "Una teoría sobre la política"],
-                correct: 1,
-                explanation: "La alegoría de la caverna ilustra el proceso de adquisición del conocimiento y la diferencia entre el mundo sensible y el mundo de las ideas."
-            },
-            {
-                question: "Para Aristóteles, ¿cuál es el fin último del ser humano?",
-                answers: ["El placer", "La riqueza", "La felicidad (eudaimonia)", "El poder"],
-                correct: 2,
-                explanation: "Aristóteles sostiene que la felicidad (eudaimonia) es el bien supremo y el fin último al que tienden todas las acciones humanas."
-            },
-            {
-                question: "¿Qué caracteriza al ser humano según Cassirer?",
-                answers: ["Es un animal racional", "Es un animal simbólico", "Es un animal social", "Es un animal técnico"],
-                correct: 1,
-                explanation: "Ernst Cassirer define al ser humano como 'animal symbolicum', destacando nuestra capacidad única de crear y usar símbolos para dar sentido al mundo."
-            }
-        ];
-        
-        const socraticDialogues = [
-            {
-                topic: "¿Qué es la justicia?",
-                currentStep: 0,
-                steps: [
-                    {
-                        dialogue: [{ speaker: "socrates", text: "Dime, joven estudiante, ¿qué crees que es la justicia?" }],
-                        choices: ["La justicia es dar a cada uno lo que se merece", "¿Pero acaso todas las leyes son justas? ¿No has visto leyes injustas?", "La justicia es tratar a todos por igual", "No estoy seguro"],
-                        responses: [
-                            "Interesante. Pero dime, ¿quién decide lo que cada uno merece?",
-                            "Ciertamente, las leyes a veces son imperfectas. ¿Hay entonces una justicia por encima de la ley?",
-                            "Tratar igual al sabio y al ignorante, al virtuoso y al malvado... ¿es eso realmente justo?",
-                            "La honestidad intelectual es admirable. Exploremos juntos este concepto."
-                        ]
-                    },
-                    {
-                        dialogue: [{ speaker: "socrates", text: "¿Y de dónde proviene esa justicia que mencionas?" }],
-                        choices: ["Los más sabios de la sociedad", "De las leyes establecidas", "Cada persona según su conciencia", "La tradición y costumbres"],
-                        responses: [
-                            "Pero, ¿cómo reconocemos a los verdaderamente sabios? ¿No podrían fingir sabiduría?",
-                            "Las leyes son hechas por humanos. ¿Son siempre justos quienes las crean?",
-                            "Si cada conciencia decide, ¿no tendríamos infinitas definiciones de justicia?",
-                            "¿Las tradiciones son siempre justas? ¿No han existido tradiciones terribles?"
-                        ]
-                    }
-                ]
-            },
-            {
-                topic: "¿Qué es la belleza?",
-                currentStep: 0,
-                steps: [
-                    {
-                        dialogue: [{ speaker: "socrates", text: "Hablemos de la belleza. ¿Qué hace que algo sea bello?" }],
-                        choices: ["La belleza está en los ojos del espectador", "La belleza es armonía y proporción", "Lo bello es lo que nos causa placer", "La belleza es perfecta simetría"],
-                        responses: [
-                            "Si la belleza es subjetiva, ¿por qué discutimos sobre arte? ¿No habría criterios compartidos?",
-                            "Interesante. ¿Pero qué determina qué proporciones son armoniosas?",
-                            "¿Todo placer proviene de la belleza? ¿Es bello el placer de la venganza?",
-                            "¿Es simétrico el rostro humano que consideramos bello? Observa más atentamente..."
-                        ]
-                    },
-                    {
-                        dialogue: [{ speaker: "socrates", text: "¿Y cómo podemos conocer esa belleza universal, si es que existe?" }],
-                        choices: ["Hay algunos criterios universales de belleza", "La cultura determina qué es bello", "La naturaleza nos enseña la belleza", "Es un misterio inexplicable"],
-                        responses: [
-                            "¿Cuáles serían esos criterios universales? ¿De dónde provienen?",
-                            "¿Entonces no existe belleza objetiva? ¿Era bella la Afrodita antes de que la cultura griega la creara?",
-                            "La naturaleza es cruel y violenta también. ¿Es bella una tormenta destructiva?",
-                            "Los misterios nos invitan a seguir preguntando. ¿No crees?"
-                        ]
-                    }
-                ]
-            }
-        ];
-
-        const ethicsDilemmas = [
-            {
-                scenario: "Imagina que eres el único testigo de un accidente de coche. El conductor es tu mejor amigo, y sabes que estaba ebrio. La otra persona está gravemente herida. Cuando llega la policía, te preguntan qué pasó. Tienes dos opciones:",
-                options: [
-                    {
-                        text: "Mientes para proteger a tu amigo, diciendo que no sabes si estaba ebrio.",
-                        result: "Esta decisión se alinea con una **ética de la lealtad**, priorizando la amistad. Sin embargo, desde una perspectiva **utilitarista**, tu mentira podría causar un mayor daño (un conductor ebrio no es castigado y podría herir a más personas). Desde una perspectiva **kantiana**, mentir es siempre inmoral, ya que no puede convertirse en una ley universal."
-                    },
-                    {
-                        text: "Dices la verdad sobre lo que viste, sabiendo que tu amigo tendrá graves problemas legales.",
-                        result: "Esta decisión se alinea con la **ética del deber** de Kant. Al decir la verdad, actúas basándote en un principio moral universal, sin importar las consecuencias personales. Esta acción también podría ser vista como **utilitarista** si el castigo de tu amigo evita que ponga en peligro a otros en el futuro."
-                    }
-                ]
-            },
-            {
-                scenario: "Un médico tiene a cinco pacientes que necesitan un trasplante de órganos para sobrevivir, pero no hay donantes. Llega un paciente sano que podría ser un donante compatible para los cinco. El médico tiene dos opciones:",
-                options: [
-                    {
-                        text: "Sacrificar al paciente sano para salvar a los cinco. (Acción Utilitarista)",
-                        result: "El **utilitarismo** se enfoca en el mayor bien para el mayor número de personas. Desde este punto de vista, sacrificar a uno para salvar a cinco es la decisión correcta. Sin embargo, esta acción viola los derechos individuales del paciente sano, lo que es inaceptable para otras éticas como la **ética deontológica** de Kant, que se basa en el deber y el valor intrínseco de cada vida."
-                    },
-                    {
-                        text: "No hacer nada y dejar que los cinco pacientes mueran. (Acción Deontológica)",
-                        result: "La **ética deontológica** de Kant se centra en el deber. Un médico tiene el deber de no hacer daño, y sacrificar a un paciente para salvar a otros va en contra de ese deber. Aunque el resultado es la muerte de cinco personas, la acción misma es moralmente correcta, ya que no se violan los derechos de nadie. El fin no justifica los medios."
-                    }
-                ]
-            }
-        ];
-
-        const timelineItems = [
-            { id: 'aristoteles', name: 'Aristóteles', year: -384 },
-            { id: 'socrates', name: 'Sócrates', year: -470 },
-            { id: 'platon', name: 'Platón', year: -427 },
-            { id: 'descartes', name: 'Descartes', year: 1596 },
-            { id: 'kant', name: 'Kant', year: 1724 },
-            { id: 'nietzsche', name: 'Nietzsche', year: 1844 }
-        ];
-
-        let draggableItem = null;
-        let dialogueHistory = [];
-        let debateTimerInterval = null;
-        let timerSeconds = 30;
-
-        // UI Elements
-        const mainScreen = document.getElementById('mainScreen');
-        const gameScreens = document.querySelectorAll('.game-screen');
-        const totalScoreEl = document.getElementById('totalScore');
-        const gamesCompletedEl = document.getElementById('gamesCompleted');
-        const achievementsCountEl = document.getElementById('achievementsCount');
-        const achievementsDisplay = document.getElementById('achievementsDisplay');
-
-        // Game-specific elements
-        const quizScreen = document.getElementById('quizScreen');
-        const quizQuestionEl = document.getElementById('quizQuestion');
-        const quizAnswersEl = document.getElementById('quizAnswers');
-        const quizFeedbackEl = document.getElementById('quizFeedback');
-        const quizNextBtn = document.getElementById('quizNext');
-        const quizProgressEl = document.getElementById('quizProgress');
-
-        const debateScreen = document.getElementById('debateScreen');
-        const dialogueContainer = document.getElementById('dialogueContainer');
-        const debateChoicesEl = document.getElementById('debateChoices');
-        const debateTimerEl = document.getElementById('debateTimer');
-
-        const timelineScreen = document.getElementById('timelineScreen');
-        const timelineGameEl = document.getElementById('timelineGame');
-        const timelineCheckBtn = document.getElementById('timelineCheck');
-
-        const ethicsScreen = document.getElementById('ethicsScreen');
-        const ethicsScenarioEl = document.getElementById('ethicsScenario');
-        const ethicsOptionsEl = document.getElementById('ethicsOptions');
-        const ethicsFeedbackEl = document.getElementById('ethicsFeedback');
-
-        // Functions
-        function showScreen(screenId) {
-            gameScreens.forEach(screen => {
-                if (screen.id === screenId) {
-                    screen.style.display = 'block';
-                } else {
-                    screen.style.display = 'none';
-                }
-            });
-            mainScreen.style.display = 'none';
-        }
-
-        function backToMain() {
-            mainScreen.style.display = 'block';
-            gameScreens.forEach(screen => screen.style.display = 'none');
-            updateStats();
-            // Reset timers for debates
-            clearInterval(debateTimerInterval);
-            debateTimerEl.classList.remove('warning');
-        }
-
-        function updateStats() {
-            totalScoreEl.textContent = gameState.totalScore;
-            gamesCompletedEl.textContent = gameState.gamesCompleted;
-            achievementsCountEl.textContent = gameState.achievements;
-            saveGameState();
-        }
-
-        function saveGameState() {
-            localStorage.setItem('philosoappGameState', JSON.stringify(gameState));
-        }
-
-        function loadGameState() {
-            const savedState = localStorage.getItem('philosoappGameState');
-            if (savedState) {
-                gameState = JSON.parse(savedState);
-            }
-            updateStats();
-        }
-
-        function earnPoints(points) {
-            gameState.totalScore += points;
-            updateStats();
-        }
-
-        function awardAchievement(title, description) {
-            const achievementEl = document.createElement('div');
-            achievementEl.className = 'achievement';
-            achievementEl.textContent = `⭐ Logro: ${title}`;
-            achievementsDisplay.appendChild(achievementEl);
-            gameState.achievements++;
-            updateStats();
-            setTimeout(() => achievementEl.remove(), 5000);
-        }
-
-        function startGame(game) {
-            switch (game) {
-                case 'quiz':
-                    gameState.currentQuizIndex = 0;
-                    loadQuizQuestion();
-                    showScreen('quizScreen');
-                    break;
-                case 'debate':
-                    gameState.currentDebateIndex = 0;
-                    startSocraticDebate();
-                    showScreen('debateScreen');
-                    break;
-                case 'timeline':
-                    loadTimelineGame();
-                    showScreen('timelineScreen');
-                    break;
-                case 'ethics':
-                    gameState.currentEthicsIndex = 0;
-                    loadEthicsDilemma();
-                    showScreen('ethicsScreen');
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        // --- QUIZ GAME ---
-        function loadQuizQuestion() {
-            const currentQuiz = philosophyQuiz[gameState.currentQuizIndex];
-            if (!currentQuiz) {
-                endQuiz();
-                return;
-            }
-            quizQuestionEl.textContent = currentQuiz.question;
-            quizAnswersEl.innerHTML = '';
-            quizFeedbackEl.style.display = 'none';
-            quizNextBtn.style.display = 'none';
-            
-            currentQuiz.answers.forEach((answer, index) => {
-                const button = document.createElement('button');
-                button.className = 'answer-btn';
-                button.textContent = answer;
-                button.onclick = () => checkQuizAnswer(index);
-                quizAnswersEl.appendChild(button);
-            });
-            updateQuizProgress();
-        }
-
-        function checkQuizAnswer(selectedIndex) {
-            const currentQuiz = philosophyQuiz[gameState.currentQuizIndex];
-            const isCorrect = selectedIndex === currentQuiz.correct;
-            const allButtons = quizAnswersEl.querySelectorAll('.answer-btn');
-
-            allButtons.forEach((btn, index) => {
-                btn.disabled = true;
-                if (index === currentQuiz.correct) {
-                    btn.classList.add('correct');
-                } else if (index === selectedIndex) {
-                    btn.classList.add('incorrect');
-                }
-            });
-
-            if (isCorrect) {
-                quizFeedbackEl.textContent = `¡Correcto! ${currentQuiz.explanation}`;
-                quizFeedbackEl.className = 'feedback show correct';
-                earnPoints(10);
-            } else {
-                quizFeedbackEl.textContent = `Incorrecto. La respuesta correcta es: ${currentQuiz.answers[currentQuiz.correct]}. ${currentQuiz.explanation}`;
-                quizFeedbackEl.className = 'feedback show incorrect';
-            }
-            quizNextBtn.style.display = 'block';
-        }
-
-        function nextQuestion() {
-            gameState.currentQuizIndex++;
-            loadQuizQuestion();
-        }
-
-        function updateQuizProgress() {
-            const progress = ((gameState.currentQuizIndex) / philosophyQuiz.length) * 100;
-            quizProgressEl.style.width = `${progress}%`;
-        }
-
-        function endQuiz() {
-            gamesCompletedEl.textContent++;
-            const finalScore = gameState.totalScore;
-            quizQuestionEl.textContent = `¡Juego Terminado! Obtuviste ${finalScore} puntos.`;
-            quizAnswersEl.innerHTML = '';
-            quizFeedbackEl.style.display = 'none';
-            quizNextBtn.textContent = "Volver al menú";
-            quizNextBtn.onclick = backToMain;
-            quizNextBtn.style.display = 'block';
-            if (finalScore >= philosophyQuiz.length * 10) {
-                awardAchievement('Maestro del Quiz', 'Respondiste todas las preguntas correctamente.');
-            }
-        }
-        
-        // --- DEBATE SOCRÁTICO ---
-        function startSocraticDebate() {
-            gameState.currentDebateIndex = 0;
-            dialogueHistory = [];
-            document.getElementById('continueDebate').style.display = 'none';
-            document.getElementById('finishDebate').style.display = 'none';
-            
-            const firstStep = socraticDialogues[0].steps[0];
-            firstStep.dialogue.forEach(msg => {
-                addMessage(msg.speaker, msg.text);
-            });
-            loadDebateChoices(firstStep.choices);
-            startDebateTimer();
-        }
-
-        function addMessage(speaker, text) {
-            const messageEl = document.createElement('div');
-            messageEl.className = `dialogue-message ${speaker}`;
-            messageEl.textContent = text;
-            dialogueContainer.appendChild(messageEl);
-            dialogueContainer.scrollTop = dialogueContainer.scrollHeight;
-        }
-
-        function loadDebateChoices(choices) {
-            debateChoicesEl.innerHTML = '';
-            choices.forEach((choice, index) => {
-                const button = document.createElement('button');
-                button.className = 'choice-btn';
-                button.textContent = choice;
-                button.onclick = () => handleDebateChoice(index);
-                debateChoicesEl.appendChild(button);
-            });
-        }
-
-        function handleDebateChoice(choiceIndex) {
-            const currentDebate = socraticDialogues[0];
-            const currentStep = currentDebate.steps[currentDebate.currentStep];
-            const studentResponse = currentStep.choices[choiceIndex];
-            const socratesResponse = currentStep.responses[choiceIndex];
-
-            addMessage('student', studentResponse);
-            
-            setTimeout(() => {
-                addMessage('socrates', socratesResponse);
-                currentDebate.currentStep++;
-                if (currentDebate.currentStep < currentDebate.steps.length) {
-                    const nextChoices = currentDebate.steps[currentDebate.currentStep].choices;
-                    loadDebateChoices(nextChoices);
-                } else {
-                    endDebate();
-                }
-            }, 1000);
-            
-            debateChoicesEl.innerHTML = '';
-            clearInterval(debateTimerInterval);
-        }
-
-        function endDebate() {
-            dialogueContainer.innerHTML = '';
-            const finalMessage = document.createElement('div');
-            finalMessage.className = 'dialogue-message socrates';
-            finalMessage.innerHTML = `
-                <p>Nuestro diálogo ha terminado por ahora. Recuerda que en filosofía, las preguntas son a menudo más importantes que las respuestas.</p>
-            `;
-            dialogueContainer.appendChild(finalMessage);
-            
-            document.getElementById('continueDebate').style.display = 'none';
-            document.getElementById('finishDebate').style.display = 'inline-block';
-            gamesCompletedEl.textContent++;
-            earnPoints(20);
-            updateStats();
-        }
-
-        function startDebateTimer() {
-            timerSeconds = 30;
-            debateTimerEl.textContent = `Tiempo para reflexionar: ${timerSeconds}s`;
-            debateTimerEl.classList.remove('warning');
-            
-            debateTimerInterval = setInterval(() => {
-                timerSeconds--;
-                debateTimerEl.textContent = `Tiempo para reflexionar: ${timerSeconds}s`;
-                if (timerSeconds <= 10) {
-                    debateTimerEl.classList.add('warning');
-                }
-                if (timerSeconds <= 0) {
-                    clearInterval(debateTimerInterval);
-                    debateTimerEl.textContent = "¡Tiempo agotado!";
-                    endDebate();
-                }
-            }, 1000);
-        }
-
-        // --- ETHICS DILEMMAS ---
-        function loadEthicsDilemma() {
-            const dilemma = ethicsDilemmas[gameState.currentEthicsIndex];
-            if (!dilemma) {
-                endEthicsGame();
-                return;
-            }
-            ethicsScenarioEl.textContent = dilemma.scenario;
-            ethicsOptionsEl.innerHTML = '';
-            ethicsFeedbackEl.style.display = 'none';
-
-            dilemma.options.forEach((option, index) => {
-                const button = document.createElement('button');
-                button.className = 'dilemma-btn';
-                button.textContent = option.text;
-                button.onclick = () => showEthicsResult(index);
-                ethicsOptionsEl.appendChild(button);
-            });
-        }
-
-        function showEthicsResult(selectedIndex) {
-            const dilemma = ethicsDilemmas[gameState.currentEthicsIndex];
-            const result = dilemma.options[selectedIndex].result;
-
-            ethicsOptionsEl.querySelectorAll('.dilemma-btn').forEach(btn => btn.disabled = true);
-            
-            ethicsFeedbackEl.textContent = result;
-            ethicsFeedbackEl.className = 'feedback show';
-            
-            setTimeout(() => {
-                gameState.currentEthicsIndex++;
-                if (gameState.currentEthicsIndex < ethicsDilemmas.length) {
-                    loadEthicsDilemma();
-                    earnPoints(15);
-                } else {
-                    endEthicsGame();
-                }
-            }, 8000);
-        }
-
-        function endEthicsGame() {
-            gamesCompletedEl.textContent++;
-            ethicsScenarioEl.textContent = "¡Juego de Dilemas Éticos Terminado! Has reflexionado sobre los grandes problemas morales. Vuelve al menú para explorar más.";
-            ethicsOptionsEl.innerHTML = '';
-            ethicsFeedbackEl.style.display = 'none';
-            
-            const backBtn = document.createElement('button');
-            backBtn.className = 'back-btn';
-            backBtn.textContent = 'Volver al menú';
-            backBtn.onclick = backToMain;
-            ethicsScreen.appendChild(backBtn);
-
-            awardAchievement('Pensador Ético', 'Has completado los dilemas filosóficos.');
-            updateStats();
-        }
-
-        // --- TIMELINE GAME ---
-        function loadTimelineGame() {
-            const sortedItems = [...timelineItems].sort((a, b) => a.year - b.year);
-            const shuffledItems = [...timelineItems].sort(() => 0.5 - Math.random());
-
-            timelineGameEl.innerHTML = `
-                <ul id="dragList" class="timeline-container"></ul>
-                <ul id="dropZone" class="timeline-container">
-                    ${sortedItems.map(() => `<li class="drop-zone">Suelta un filósofo aquí</li>`).join('')}
-                </ul>
-            `;
-            
-            const dragList = document.getElementById('dragList');
-            const dropZoneList = document.getElementById('dropZone');
-
-            shuffledItems.forEach(item => {
-                const li = document.createElement('li');
-                li.className = 'timeline-item';
-                li.textContent = item.name;
-                li.draggable = true;
-                li.dataset.year = item.year;
-                dragList.appendChild(li);
-            });
-            
-            addDragAndDropListeners();
-        }
-
-        function addDragAndDropListeners() {
-            const items = document.querySelectorAll('.timeline-item');
-            const dropZones = document.querySelectorAll('.drop-zone');
-
-            items.forEach(item => {
-                item.addEventListener('dragstart', (e) => {
-                    draggableItem = item;
-                    setTimeout(() => item.classList.add('dragging'), 0);
-                    e.dataTransfer.setData('text/plain', item.textContent);
-                });
-                item.addEventListener('dragend', () => {
-                    draggableItem.classList.remove('dragging');
-                    draggableItem = null;
-                });
-            });
-
-            dropZones.forEach(zone => {
-                zone.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    zone.classList.add('drag-over');
-                });
-                zone.addEventListener('dragleave', () => {
-                    zone.classList.remove('drag-over');
-                });
-                zone.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    zone.classList.remove('drag-over');
-                    if (draggableItem && !zone.querySelector('.timeline-item')) {
-                        zone.innerHTML = '';
-                        zone.appendChild(draggableItem);
-                    }
-                });
-            });
-        }
-
-        function checkTimeline() {
-            const dropZones = document.querySelectorAll('.drop-zone');
-            const sortedItems = [...timelineItems].sort((a, b) => a.year - b.year);
-            let correct = true;
-            
-            dropZones.forEach((zone, index) => {
-                const droppedItem = zone.querySelector('.timeline-item');
-                if (!droppedItem || droppedItem.textContent !== sortedItems[index].name) {
-                    correct = false;
-                }
-            });
-
-            const feedbackDiv = document.createElement('div');
-            feedbackDiv.className = 'feedback show';
-            if (correct) {
-                feedbackDiv.textContent = '✅ ¡Correcto! Has ordenado la línea de tiempo perfectamente.';
-                feedbackDiv.classList.add('correct');
-                earnPoints(25);
-                gamesCompletedEl.textContent++;
-                awardAchievement('Maestro del Tiempo', 'Has ordenado la línea de tiempo filosófica.');
-                timelineCheckBtn.style.display = 'none';
-                
-            } else {
-                feedbackDiv.textContent = '❌ Incorrecto. Revisa el orden cronológico y vuelve a intentarlo.';
-                feedbackDiv.classList.add('incorrect');
-            }
-            timelineGameEl.appendChild(feedbackDiv);
-        }
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', loadGameState);
-    </script>
+  <!-- Scripts -->
+  <script defer src="app.js"></script>
 </body>
 </html>
