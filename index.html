@@ -1,46 +1,45 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <title>PhilosoApp · Filosofía Interactiva</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  />
+  <title>PhilosoApp – Unidad II</title>
+  <meta name="description" content="App de filosofía interactiva para secundaria (Unidad II: Antropología filosófica)" />
   <meta name="theme-color" content="#2D1B69" />
-  <meta name="description" content="Aplicación interactiva de filosofía para secundaria: lecturas, debates, dilemas éticos, historias y quiz." />
 
-  <!-- Styles -->
-  <link rel="preload" as="style" href="styles.css" />
+  <!-- Estilos (separado) -->
   <link rel="stylesheet" href="styles.css" />
-
-  <!-- Favicons básicos -->
-  <link rel="icon" href="data:image/svg+xml,\
-  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>\
-    <circle cx='50' cy='50' r='45' fill='%232D1B69'/>\
-    <text x='50' y='65' font-family='serif' font-size='40' fill='white' text-anchor='middle'>Φ</text>\
-  </svg>" />
 </head>
 <body>
-  <!-- Logros flotantes -->
-  <div class="achievements-tray" id="achievementsTray" aria-live="polite"></div>
+  <!-- Bandeja de logros (notificaciones) -->
+  <div class="achievements" id="achievementsTray" aria-live="polite"></div>
 
-  <main class="container" role="main">
-    <!-- Encabezado -->
-    <header class="header">
-      <h1>🧠 PhilosoApp</h1>
-      <p>Explorá filosofía con lecturas, debates, dilemas y más — a tu ritmo.</p>
-    </header>
+  <!-- Toast de mensajes cortos -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-    <!-- Barra de control global -->
-    <section class="toolbar" aria-label="Controles de unidad y progreso">
-      <div class="select-group">
-        <label for="unitSelect">Unidad temática:</label>
-        <select id="unitSelect">
-          <option value="I">UNIDAD I · ¿Qué es filosofía?</option>
-          <option value="II">UNIDAD II · Antropología filosófica</option>
-          <option value="III">UNIDAD III · Ética</option>
+  <div class="container">
+    <!-- Pantalla principal -->
+    <section id="mainScreen" class="screen">
+      <header class="header">
+        <h1>🧠 PhilosoApp</h1>
+        <p>Unidad II · Antropología filosófica — actividades interactivas</p>
+      </header>
+
+      <!-- Selector de unidad (bloqueado a II por ahora, lo usa app.js si existe) -->
+      <div class="controls" style="margin-bottom: 12px;">
+        <label for="unitSelect"><strong>Unidad:</strong></label>
+        <select id="unitSelect" class="input" style="max-width: 220px;">
+          <option value="I" disabled>Unidad I (próximamente)</option>
+          <option value="II" selected>Unidad II (Antropología filosófica)</option>
+          <option value="III" disabled>Unidad III (próximamente)</option>
         </select>
       </div>
 
-      <div class="stats" aria-label="Estadísticas">
+      <!-- Stats superiores -->
+      <div class="stats" role="group" aria-label="Estadísticas">
         <div class="stat">
           <div class="stat-number" id="totalScore">0</div>
           <div class="stat-label">Puntos</div>
@@ -54,83 +53,96 @@
           <div class="stat-label">Logros</div>
         </div>
       </div>
-    </section>
 
-    <!-- Menú principal -->
-    <section id="mainScreen" class="screen active" aria-label="Menú principal">
-      <div class="games-grid">
-        <button class="game-card" data-game="reading">
+      <!-- Menú de actividades (usa data-game; el app.js engancha los clicks) -->
+      <div class="games-grid" role="list">
+        <button class="game-card" data-game="reading" role="listitem">
           <div class="game-icon">📖</div>
           <div class="game-title">Lectura & Reflexión</div>
-          <p class="game-description">Leé un texto breve, marcá ideas clave y planteá una pregunta.</p>
+          <p class="game-description">
+            Lecturas guiadas con warmups, ideas clave y checkpoints. Incluye timer.
+          </p>
         </button>
 
-        <button class="game-card" data-game="socratic">
+        <button class="game-card" data-game="socratic" role="listitem">
           <div class="game-icon">💬</div>
           <div class="game-title">Debate Socrático</div>
-          <p class="game-description">Hipótesis → preguntas → objeción → revisión de postura.</p>
+          <p class="game-description">
+            Texto semilla → 4 fases (aclarar, evidencia, contraejemplo, consecuencias) → objeción → revisión.
+          </p>
         </button>
 
-        <button class="game-card" data-game="dilemmas">
+        <button class="game-card" data-game="dilemmas" role="listitem">
           <div class="game-icon">⚖️</div>
           <div class="game-title">Dilemas Éticos</div>
-          <p class="game-description">Decidí, leé marcos teóricos y justificá de nuevo.</p>
+          <p class="game-description">
+            Decisión inmediata → lectura guiada → re-decisión justificada. Con timer y puntaje.
+          </p>
         </button>
 
-        <button class="game-card" data-game="stories">
-          <div class="game-icon">🧭</div>
+        <button class="game-card" data-game="stories" role="listitem">
+          <div class="game-icon">🌱</div>
           <div class="game-title">Historias Ramificadas</div>
-          <p class="game-description">Elegí rutas y mirá consecuencias filosóficas.</p>
+          <p class="game-description">
+            Elegí caminos, mirá consecuencias y registrá tu recorrido.
+          </p>
         </button>
 
-        <button class="game-card" data-game="cards">
-          <div class="game-icon">🗂️</div>
+        <button class="game-card" data-game="cards" role="listitem">
+          <div class="game-icon">🃏</div>
           <div class="game-title">Cartas de Conceptos</div>
-          <p class="game-description">Volteá, explicá con tus palabras y compará.</p>
+          <p class="game-description">
+            Volteá la carta, explicá con tus palabras y reforzá vocabulario clave.
+          </p>
         </button>
 
-        <button class="game-card" data-game="quiz">
+        <button class="game-card" data-game="quiz" role="listitem">
           <div class="game-icon">🧠</div>
-          <div class="game-title">Quiz con Pistas</div>
-          <p class="game-description">Leé una pista antes de responder. ¡Tiempo corriendo!</p>
+          <div class="game-title">Quiz</div>
+          <p class="game-description">
+            Por tema o toda la unidad, con pistas y lectura relacionada opcional.
+          </p>
         </button>
       </div>
+    </section>
 
-      <div class="export-import">
-        <button id="exportBtn" class="btn">Exportar portafolio</button>
-        <label class="file-label">
+    <!-- Pantalla modular (el app.js renderiza aquí cada actividad) -->
+    <section id="moduleScreen" class="screen" aria-live="polite">
+      <button id="backBtn" class="back-btn" aria-label="Volver al menú">
+        ← Volver
+      </button>
+
+      <div class="header">
+        <h2 id="moduleTitle">Módulo</h2>
+        <p id="moduleObjective"></p>
+
+        <div class="stats" role="group" aria-label="Temporizador del módulo">
+          <div class="stat">
+            <div class="stat-number" id="moduleTimer">00:00</div>
+            <div class="stat-label">Tiempo</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="moduleBody" class="module-body"></div>
+      <div id="moduleFooter" class="module-footer"></div>
+
+      <div class="controls" style="margin-top: 12px; gap: 8px;">
+        <button id="exportBtn" class="btn-secondary">Exportar portafolio</button>
+        <label class="btn-secondary" style="cursor: pointer;">
           Importar portafolio
-          <input id="importInput" type="file" accept="application/json" />
+          <input id="importInput" type="file" accept="application/json" style="display: none;" />
         </label>
       </div>
     </section>
+  </div>
 
-    <!-- Plantilla de pantalla/módulo -->
-    <section id="moduleScreen" class="screen" aria-live="polite">
-      <button class="back-btn" id="backBtn" aria-label="Volver al menú">← Volver</button>
-
-      <div class="module-header">
-        <div class="module-meta">
-          <h2 id="moduleTitle">Título del módulo</h2>
-          <p id="moduleObjective" class="objective">Objetivo del módulo…</p>
-        </div>
-        <div class="timer" id="moduleTimer" aria-live="polite">00:00</div>
-      </div>
-
-      <div class="module-body" id="moduleBody">
-        <!-- Contenido dinámico del módulo -->
-      </div>
-
-      <div class="module-footer" id="moduleFooter">
-        <!-- Controles/acciones dinámicos -->
-      </div>
-    </section>
-
-    <!-- Toast -->
-    <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  </main>
-
-  <!-- Scripts -->
-  <script defer src="app.js"></script>
+  <!-- Script principal -->
+  <script src="app.js"></script>
+  <noscript>
+    <p style="padding:1rem; background:#fee; color:#900;">
+      Para usar PhilosoApp necesitás activar JavaScript.
+    </p>
+  </noscript>
 </body>
 </html>
